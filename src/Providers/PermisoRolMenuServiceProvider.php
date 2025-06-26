@@ -31,6 +31,9 @@ class PermisoRolMenuServiceProvider extends ServiceProvider
         // Cargar migraciones automáticamente si el usuario lo prefiere
         $this->loadMigrationsFrom(__DIR__.'/../../database/migrations');
 
+        // Cargar rutas
+        $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
+
         // Registrar Gates para el sistema de permisos
         $this->registerGates();
 

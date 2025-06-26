@@ -16,7 +16,8 @@ class Permiso extends Model
         'nombre',
         'ruta_corta',
         'descripcion',
-        'especial',
+        'icono',
+        'activo'
     ];
 
     public $timestamps = false;
