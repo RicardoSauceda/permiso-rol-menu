@@ -19,7 +19,7 @@ trait UsesSpanishUserTable
      */
     public function getTable()
     {
-        return $this->table ?? 'usuarios';
+        return $this->table ?? 'tblz_usuarios';
     }
 
     /**
