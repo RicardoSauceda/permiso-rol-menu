@@ -18,7 +18,7 @@ class MenuController extends Controller
                 'ruta_corta' => 'required|string|max:255',
                 'descripcion' => 'nullable|string|max:500',
                 'icono' => 'nullable|string|max:255',
-                'clave_orden' => 'nullable|digits:6',
+                'clave_orden' => 'nullable|digits:6|unique:tblz_permisos,clave_orden',
                 'activo' => 'boolean',
             ]);
 
@@ -39,7 +39,7 @@ class MenuController extends Controller
                 'ruta_corta' => 'required|string|max:255',
                 'descripcion' => 'nullable|string|max:500',
                 'icono' => 'nullable|string|max:255',
-                'clave_orden' => 'nullable|digits:6',
+                'clave_orden' => 'nullable|digits:6|unique:tblz_permisos,clave_orden,' . $id,
                 'activo' => 'boolean',
             ]);
 

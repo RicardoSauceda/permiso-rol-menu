@@ -15,7 +15,7 @@ class CreateTblzPermisosTable extends Migration
     {
         Schema::create('tblz_permisos', function (Blueprint $table) {
             $table->id();
-            $table->integer('clave_orden')->nullable()->unique();
+            $table->string('clave_orden')->nullable()->unique();
             $table->string('nombre');
             $table->string('ruta_corta');
             $table->string('descripcion')->nullable();
