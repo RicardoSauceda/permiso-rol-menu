@@ -2,13 +2,10 @@
 
 namespace Icatech\PermisoRolMenu\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Permiso extends Model
 {
-    use HasFactory;
-
     protected $table = 'tblz_permisos';
 
     protected $fillable = [

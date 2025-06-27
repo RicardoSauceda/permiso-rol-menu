@@ -2,6 +2,15 @@
 
 Este paquete proporciona funcionalidades para manejar permisos, roles y menús con convenciones en español.
 
+## Compatibilidad
+
+- ✅ **Laravel 7.x** - Compatible
+- ✅ **Laravel 8.x** - Compatible  
+- ✅ **Laravel 9.x** - Compatible
+- ✅ **Laravel 10.x** - Compatible
+- ✅ **PHP 7.3+** - Compatible
+- ✅ **PHP 8.x** - Compatible
+
 ## Características Principales
 
 - ✅ **Sistema de permisos y roles** con convenciones en español
