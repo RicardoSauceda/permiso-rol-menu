@@ -4,7 +4,9 @@ namespace Icatech\PermisoRolMenu\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
 use Icatech\PermisoRolMenu\Middleware\PermisoMiddleware;
+use Icatech\PermisoRolMenu\View\MenuComposer;
 
 class PermisoRolMenuServiceProvider extends ServiceProvider
 {
@@ -21,24 +23,57 @@ class PermisoRolMenuServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        // Publicar migraciones
+        // Cargar vistas
+        $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'permiso-rol-menu');
+
+        // Publicar archivos en modo consola
         if ($this->app->runningInConsole()) {
+            // Publicar migraciones
             $this->publishes([
-                __DIR__.'/../../database/migrations' => database_path('migrations'),
+                __DIR__ . '/../../database/migrations' => database_path('migrations'),
             ], 'icatech-permiso-rol-menu-migrations');
+
+            // Publicar vistas
+            $this->publishes([
+                __DIR__ . '/../../resources/views' => resource_path('views/vendor/permiso-rol-menu'),
+            ], 'icatech-permiso-rol-menu-views');
+
+            // Publicar configuración
+            $this->publishes([
+                __DIR__ . '/../../config/permiso-rol-menu.php' => config_path('permiso-rol-menu.php'),
+            ], 'icatech-permiso-rol-menu-config');
         }
 
         // Cargar migraciones automáticamente si el usuario lo prefiere
-        $this->loadMigrationsFrom(__DIR__.'/../../database/migrations');
+        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
 
         // Cargar rutas
-        $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
+        $this->loadRoutesFrom(__DIR__ . '/../../routes/web.php');
+
+        // Registrar view composer para menu dinámico
+        $this->registerViewComposers();
 
         // Registrar Gates para el sistema de permisos
         $this->registerGates();
 
         // Registrar middleware
         $this->registerMiddleware();
+    }
+
+    /**
+     * Registrar view composers
+     */
+    protected function registerViewComposers()
+    {
+        // Aplicar el composer a la vista del paquete
+        View::composer('permiso-rol-menu::navbar', MenuComposer::class);
+
+        // También aplicar a las vistas personalizadas del usuario si existen
+        View::composer([
+            'theme.sivyc.menuDinamico',
+            'vendor.permiso-rol-menu.navbar',
+            'layouts.navbar'
+        ], MenuComposer::class);
     }
 
     /**
