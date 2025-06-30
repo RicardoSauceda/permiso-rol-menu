@@ -1,7 +1,11 @@
+@push('styles')
+<link rel="stylesheet" href="{{ asset('vendor/permiso-rol-menu/css/navbar.css') }}">
+@endpush
+
 <!--Navbar -->
 <nav class="mb-1 navbar navbar-expand-lg navbar-dark pink2 darken-4">
     <a href="https://sivyc.icatech.gob.mx" class="navbar-brand g-text-underline--hover">
-        <img src="{{ asset('img/sivyc.png') }}" alt="SIVyC" height="45">
+        <img src="{{ asset('img/sivyc.png') }}" alt="SIVyC">
     </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent-555"
         aria-controls="navbarSupportedContent-555" aria-expanded="false" aria-label="Toggle navigation">
@@ -114,22 +118,3 @@
         @endguest
     </div>
 </nav>
-
-<style>
-    .dropdown-submenu {
-        position: relative;
-    }
-
-    .dropdown-submenu>.dropdown-menu {
-        top: 0;
-        left: 100%;
-        margin-top: -1px;
-    }
-
-    .dropdown-submenu>a:after {
-        content: "▶";
-        float: right;
-        margin-left: 5px;
-        font-size: 0.7em;
-    }
-</style>

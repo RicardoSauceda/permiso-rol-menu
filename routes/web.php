@@ -17,6 +17,10 @@ Route::prefix('permiso-rol-menu')->name('permiso-rol-menu.')->group(function () 
     Route::delete('roles/{id}', [RolController::class, 'destroy'])->name('roles.destroy');
 
     // Rutas para Menús (tipo de permiso)
+    Route::get('/menus/index', 'adminController\MenuController@treeIndex')->name('menus.index');
+    Route::post('/menus/{id}/status-update', 'adminController\MenuController@statusUpdate')->name('menus.status.update');
+    Route::post('/menus/store', 'adminController\MenuController@treeStore')->name('menus.store');
+
     Route::post('menus', [MenuController::class, 'store'])->name('menus.store');
     Route::put('menus/{id}', [MenuController::class, 'update'])->name('menus.update');
     Route::delete('menus/{id}', [MenuController::class, 'destroy'])->name('menus.destroy');

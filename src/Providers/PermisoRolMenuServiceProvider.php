@@ -42,6 +42,20 @@ class PermisoRolMenuServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__ . '/../../config/permiso-rol-menu.php' => config_path('permiso-rol-menu.php'),
             ], 'icatech-permiso-rol-menu-config');
+
+            // Publicar assets CSS y JS
+            $this->publishes([
+                __DIR__ . '/../../resources/assets/css' => public_path('vendor/permiso-rol-menu/css'),
+            ], 'icatech-permiso-rol-menu-css');
+
+            $this->publishes([
+                __DIR__ . '/../../resources/assets/js' => public_path('vendor/permiso-rol-menu/js'),
+            ], 'icatech-permiso-rol-menu-js');
+
+            // Publicar todos los assets juntos
+            $this->publishes([
+                __DIR__ . '/../../resources/assets' => public_path('vendor/permiso-rol-menu'),
+            ], 'icatech-permiso-rol-menu-assets');
         }
 
         // Cargar migraciones automáticamente si el usuario lo prefiere
