@@ -1,6 +1,6 @@
 <!--Navbar -->
 <nav class="mb-1 navbar navbar-expand-lg navbar-dark pink2 darken-4">
-    <a href="{{ config('app.url', 'https://sivyc.icatech.gob.mx') }}" class="navbar-brand g-text-underline--hover">
+    <a href="https://sivyc.icatech.gob.mx" class="navbar-brand g-text-underline--hover">
         <img src="{{ asset('img/sivyc.png') }}" alt="SIVyC" height="45">
     </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent-555"
@@ -77,7 +77,8 @@
                     <a href="{{ $notification->data['url'] ?? '#' }}" class="dropdown-item">
                         <i class="fas fa-envelope mr-2"></i> {{ $notification->data['titulo'] ?? 'Notificación' }}
                         <br>{{ $notification->data['cuerpo'] ?? 'Contenido de la notificación' }}
-                        <br><span class="float-right text-muted text-sm">{{ $notification->created_at->diffForHumans() }}</span>
+                        <br><span class="float-right text-muted text-sm">{{ $notification->created_at->diffForHumans()
+                            }}</span>
                     </a>
                     @endforeach
                     <a href='#' class="dropdown-item">
