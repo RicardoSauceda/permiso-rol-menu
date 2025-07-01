@@ -67,7 +67,7 @@ class MenuController extends Controller
     {
         $data = $request->validate([
             'permisoName'        => 'required|string|max:255',
-            'rutaCorta'        => 'required|string|max:255',
+            'rutaCorta'          => 'required|string|max:255',
             'permisoDescripcion' => 'nullable|string',
             'clave_orden_padre'  => 'nullable|string|max:6',
         ]);
@@ -77,40 +77,50 @@ class MenuController extends Controller
         $menu->ruta_corta = trim($data['rutaCorta']);
         $menu->descripcion = trim($data['permisoDescripcion'] ?? '');
 
-        $parentClave = $data['clave_orden_padre'] ?? null;
+        $clavePadre = $data['clave_orden_padre'] ?? null;
         $parent = null;
-        if ($parentClave) {
-            $parent = Permiso::where('clave_orden', $parentClave)->first();
+        if ($clavePadre) {
+            $parent = Permiso::where('clave_orden', $clavePadre)->first();
         }
         if ($parent && $parent->clave_orden) {
-            $parentClave = $parent->clave_orden;
+            $clavePadre = $parent->clave_orden;
 
-            if (substr($parentClave, 2, 2) === '00' && substr($parentClave, 4, 2) === '00') {
+            if (substr($clavePadre, 2, 6) === '000000') { // XX000000
                 $prefixLen = 2;
-            } elseif (substr($parentClave, 4, 2) === '00') {
+                $maxItems = 99;
+            } elseif (substr($clavePadre, 4, 4) === '0000') { // XXXX0000  
                 $prefixLen = 4;
-            } else {
+                $maxItems = 99;
+            } elseif (substr($clavePadre, 6, 2) === '00') { // XXXXXX00
                 $prefixLen = 6;
+                $maxItems = 99;
+            } else { // XXXXXXXX - Los nuevos 2 dígitos
+                $prefixLen = 8;
+                $maxItems = 99;
             }
-            $childPos = $prefixLen;
-            $prefix = substr($parentClave, 0, $prefixLen);
-            $suffix = ($childPos + 2 < strlen($parentClave)) ? substr($parentClave, $childPos + 2) : '';
-            // Obtener claves de hermanos
-            $siblings = Permiso::where('clave_orden', 'like', $prefix . '%')->pluck('clave_orden');
-            $max = 0;
-            foreach ($siblings as $clave) {
-                if (strlen($clave) >= $childPos + 2) {
-                    $seg = substr($clave, $childPos, 2);
-                    if (is_numeric($seg)) {
-                        $max = max($max, (int) $seg);
-                    }
+
+            $prefix = substr($clavePadre, 0, $prefixLen);
+
+            // Buscar el siguiente número disponible
+            $existingItems = Permiso::where('clave_orden', 'like', $prefix . '%')
+                ->where('clave_orden', '!=', $clavePadre)
+                ->pluck('clave_orden')
+                ->toArray();
+
+            $nextNumber = 1;
+            $paddingLen = ($prefixLen === 8) ? 0 : 8 - $prefixLen - 2; // Calcular padding restante
+
+            for ($i = 1; $i <= $maxItems; $i++) {
+                $testClave = $prefix . str_pad($i, 2, '0', STR_PAD_LEFT) . str_repeat('0', $paddingLen);
+                if (!in_array($testClave, $existingItems)) {
+                    $nextNumber = $i;
+                    break;
                 }
             }
-            $newSeg = str_pad($max + 1, 2, '0', STR_PAD_LEFT);
-            $menu->clave_orden = $prefix . $newSeg . $suffix;
+
+            $menu->clave_orden = $prefix . str_pad($nextNumber, 2, '0', STR_PAD_LEFT) . str_repeat('0', $paddingLen);
         } else {
-            // Fallback: sin padre o sin clave asignada
-            $menu->clave_orden = '010000';
+            $menu->clave_orden = '01000000'; // Primer menú principal
         }
         $menu->activo = true;
         $menu->save();
@@ -179,25 +189,32 @@ class MenuController extends Controller
      */
     private function updateSubmenusStatus(Permiso $menu, bool $status): array
     {
-        // * Determinar nivel y prefijo según nomenclatura de clave_orden
         $clave = $menu->clave_orden;
-        if (substr($clave, 2, 2) === '00' && substr($clave, 4, 2) === '00') {
-            // * Nivel 1: prefix 2 caracteres
+
+        // Determinar el nivel y prefijo
+        if (substr($clave, 2, 6) === '000000') { // XX000000 - Nivel 1
             $prefixLen = 2;
-        } elseif (substr($clave, 4, 2) === '00') {
-            // * Nivel 2: prefix 4 caracteres
+        } elseif (substr($clave, 4, 4) === '0000') { // XXXX0000 - Nivel 2
             $prefixLen = 4;
-        } else {
-            // * Nivel 3 o más: todo clave (6 caracteres)
-            $prefixLen = strlen($clave);
+        } elseif (substr($clave, 6, 2) === '00') { // XXXXXX00 - Nivel 3
+            $prefixLen = 6;
+        } else { // XXXXXXXX - Nivel 4 (acciones)
+            $prefixLen = 8; // Solo afecta a sí mismo, no tiene hijos
         }
+
         $prefix = substr($clave, 0, $prefixLen);
-        // Obtener IDs de todos los descendientes que comiencen con el prefijo
+
         $query = Permiso::where('clave_orden', 'like', $prefix . '%')
             ->where('id', '!=', $menu->id);
+
+        // IMPORTANTE: Si es una acción (nivel 4), no buscar hijos
+        if ($prefixLen === 8) {
+            return []; // Las acciones no tienen hijos
+        }
+
         $ids = $query->pluck('id')->toArray();
-        // Actualizar estado
         $query->update(['activo' => $status]);
+
         return $ids;
     }
 }

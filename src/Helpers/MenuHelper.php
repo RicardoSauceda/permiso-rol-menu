@@ -19,26 +19,34 @@ class MenuHelper
             $clave = $perm->clave_orden;
             if (!$clave) continue;
 
-            // Menú principal
-            if (preg_match('/^\d{2}0000$/', $clave)) {
+            // Filtrar elementos de 8 dígitos completos:
+            // ✅ SÍ mostrar en navbar: 01010100 (8 dígitos pero termina en 00)
+            // ❌ NO mostrar en navbar: 01010101, 01010102, 01010199 (8 dígitos que NO terminan en 00)
+            if (preg_match('/^\d{8}$/', $clave) && !preg_match('/^\d{6}00$/', $clave)) {
+                continue;
+            }
+
+            // Solo procesar elementos del menú navbar (hasta 6 dígitos + 00)
+            // Menú principal: XX000000
+            if (preg_match('/^\d{2}000000$/', $clave)) {
                 $menu[$clave] = [
                     'permiso' => $perm,
                     'submenus' => []
                 ];
             }
-            // Submenú
-            elseif (preg_match('/^\d{4}00$/', $clave)) {
-                $main = substr($clave, 0, 2) . '0000';
+            // Submenú: XXXX0000
+            elseif (preg_match('/^\d{4}0000$/', $clave)) {
+                $main = substr($clave, 0, 2) . '000000';
                 if (!isset($menu[$main])) $menu[$main] = ['permiso' => null, 'submenus' => []];
                 $menu[$main]['submenus'][$clave] = [
                     'permiso' => $perm,
                     'submenus' => []
                 ];
             }
-            // Sub-submenú
-            elseif (preg_match('/^\d{6}$/', $clave)) {
-                $main = substr($clave, 0, 2) . '0000';
-                $sub = substr($clave, 0, 4) . '00';
+            // Sub-submenú: XXXXXX00
+            elseif (preg_match('/^\d{6}00$/', $clave)) {
+                $main = substr($clave, 0, 2) . '000000';
+                $sub = substr($clave, 0, 4) . '0000';
                 if (!isset($menu[$main])) $menu[$main] = ['permiso' => null, 'submenus' => []];
                 if (!isset($menu[$main]['submenus'][$sub])) $menu[$main]['submenus'][$sub] = ['permiso' => null, 'submenus' => []];
                 $menu[$main]['submenus'][$sub]['submenus'][$clave] = [
