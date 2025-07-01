@@ -16,12 +16,14 @@
             </div>
         </div>
         <div class="d-flex align-items-center">
-            <a href="{{ route('permiso-rol-menu.permisos.arbol', $menu['clave_orden']) }}" 
-               class="btn btn-sm btn-outline-primary mr-2" 
-               title="Ver permisos específicos">
-                <i class="fas fa-key"></i>
-                <span class="d-none d-md-inline">Permisos</span>
-            </a>
+            @if(!isset($menu['submenu']) || count($menu['submenu']) == 0)
+                <a href="{{ route('permiso-rol-menu.permisos.arbol', $menu['clave_orden']) }}" 
+                   class="btn btn-sm btn-outline-primary mr-2" 
+                   title="Ver permisos específicos">
+                    <i class="fas fa-key"></i>
+                    <span class="d-none d-md-inline">Permisos</span>
+                </a>
+            @endif
             <span id="status-{{ $menu['id'] }}" style="cursor: pointer;" class="status badge badge-{{ $menu['activo'] ? 'success' : 'danger' }} mr-2" data-id-menu="{{ $menu['id'] }}">
                 {{ $menu['activo'] ? 'Activo' : 'Inactivo' }}
             </span>
