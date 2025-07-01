@@ -16,7 +16,7 @@
             </div>
         </div>
         <div class="d-flex align-items-center">
-            <span id="status-{{ $menu['id'] }}" style="cursor: pointer;No" class="status badge badge-{{ $menu['activo'] ? 'success' : 'danger' }} mr-2" data-id-menu="{{ $menu['id'] }}">
+            <span id="status-{{ $menu['id'] }}" style="cursor: pointer;" class="status badge badge-{{ $menu['activo'] ? 'success' : 'danger' }} mr-2" data-id-menu="{{ $menu['id'] }}">
                 {{ $menu['activo'] ? 'Activo' : 'Inactivo' }}
             </span>
         </div>
