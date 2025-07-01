@@ -24,7 +24,7 @@
                         <ul class="menu-tree">
                             @if(isset($menuTree) && count($menuTree) > 0)
                                 @foreach($menuTree as $menuItems)
-                                    @include('menu_items', ['menu' => $menuItems, 'level' => 0])
+                                    @include('permiso-rol-menu::menu_items', ['menu' => $menuItems, 'level' => 0])
                                 @endforeach
                             @else
                             <li>No hay menús disponibles</li>

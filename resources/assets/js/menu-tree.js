@@ -55,7 +55,7 @@ class MenuTree {
 
     updateMenuStatus(menuId, newStatus) {
         $.ajax({
-            url: `/menus/${menuId}/status-update`,
+            url: `/permiso-rol-menu/menus/${menuId}/status-update`,
             method: 'POST',
             data: {
                 status: newStatus,

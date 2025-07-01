@@ -24,7 +24,7 @@
     @if(isset($menu['submenu']) && count($menu['submenu']) > 0)
         <ul id="submenu-{{ $menu['clave_orden'] }}" class="collapse">
             @foreach($menu['submenu'] as $child)
-                @include('layouts.pages_admin.menu_items', ['menu' => $child, 'level' => $level + 1])
+                @include('permiso-rol-menu::menu_items', ['menu' => $child, 'level' => $level + 1])
             @endforeach
         </ul>
     @endif
@@ -37,7 +37,7 @@
                     <span class="text-sm">Añadir</span>
                 </button>
                 <div id="add-form-{{ $menu['id'] }}" class="collapse mt-2">
-                    <form method="POST" action="{{ route('menus.store') }}">
+                    <form method="POST" action="{{ route('permiso-rol-menu.tree.menus.store') }}">
                         @csrf
                         <input type="hidden" name="menu" value="1">
                         <input type="hidden" name="activo" value="1">
