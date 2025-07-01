@@ -47,8 +47,8 @@
                             <input type="text" name="permisoName" class="form-control form-control-sm" required>
                         </div>
                         <div class="form-group">
-                            <label>Slug</label>
-                            <input type="text" name="permisoSlug" class="form-control form-control-sm" required>
+                            <label>Ruta Corta</label>
+                            <input type="text" name="rutaCorta" class="form-control form-control-sm" required>
                         </div>
                         <div class="form-group">
                             <label>Descripción</label>

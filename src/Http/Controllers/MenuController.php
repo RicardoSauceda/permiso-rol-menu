@@ -67,14 +67,14 @@ class MenuController extends Controller
     {
         $data = $request->validate([
             'permisoName'        => 'required|string|max:255',
-            'permisoSlug'        => 'required|string|max:255',
+            'rutaCorta'        => 'required|string|max:255',
             'permisoDescripcion' => 'nullable|string',
             'clave_orden_padre'  => 'nullable|string|max:6',
         ]);
 
         $menu = new Permiso;
         $menu->nombre = trim($data['permisoName']);
-        $menu->ruta_corta = trim($data['permisoSlug']);
+        $menu->ruta_corta = trim($data['rutaCorta']);
         $menu->descripcion = trim($data['permisoDescripcion'] ?? '');
 
         $parentClave = $data['clave_orden_padre'] ?? null;
