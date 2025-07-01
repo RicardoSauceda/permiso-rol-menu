@@ -18,7 +18,7 @@ Route::prefix('permiso-rol-menu')->name('permiso-rol-menu.')->group(function () 
 
     // Rutas para Menús (tipo de permiso)
     Route::post('/menus/{id}/status-update', [MenuController::class, 'statusUpdate'])->name('tree.menus.status.update');
-    Route::post('/menus/store', [MenuController::class, '@treeStore'])->name('tree.menus.store');
+    Route::post('/menus/store', [MenuController::class, 'treeStore'])->name('tree.menus.store');
 
     Route::post('menus', [MenuController::class, 'store'])->name('menus.store');
     Route::put('menus/{id}', [MenuController::class, 'update'])->name('menus.update');
