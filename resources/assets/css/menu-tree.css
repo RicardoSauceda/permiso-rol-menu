@@ -40,3 +40,48 @@
 .status:hover {
     opacity: 0.8;
 }
+
+/* Estilos específicos para permisos */
+.tree-level-permission {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.tree-level-permission:hover {
+    background-color: #e9ecef;
+}
+
+.permission-icon {
+    width: 24px;
+    text-align: center;
+}
+
+.permission-status {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.permission-status:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+
+.permission-name {
+    color: #495057;
+    font-size: 1rem;
+}
+
+.dropdown-toggle::after {
+    display: none;
+}
+
+#permisos-tree .card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+#permisos-tree .bg-light {
+    background-color: #f8f9fa !important;
+    border-left: 4px solid #007bff;
+}

@@ -11,6 +11,11 @@ Route::prefix('permiso-rol-menu')->name('permiso-rol-menu.')->group(function () 
     Route::put('permisos/{id}', [PermisoController::class, 'update'])->name('permisos.update');
     Route::delete('permisos/{id}', [PermisoController::class, 'destroy'])->name('permisos.destroy');
 
+    // Rutas para árbol de permisos específicos
+    Route::get('permisos/arbol/{claveOrdenPadre?}', [PermisoController::class, 'showPermisosArbol'])->name('permisos.arbol');
+    Route::post('permisos/store-permiso', [PermisoController::class, 'storePermiso'])->name('permisos.store-permiso');
+    Route::post('permisos/{id}/status-update', [PermisoController::class, 'updatePermisoStatus'])->name('permisos.status.update');
+
     // Rutas para Roles
     Route::post('roles', [RolController::class, 'store'])->name('roles.store');
     Route::put('roles/{id}', [RolController::class, 'update'])->name('roles.update');
