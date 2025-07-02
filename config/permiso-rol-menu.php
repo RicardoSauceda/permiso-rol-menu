@@ -3,6 +3,17 @@
 return [
     /*
     |--------------------------------------------------------------------------
+    | Layout por defecto del paquete
+    |--------------------------------------------------------------------------
+    |
+    | Este es el layout que se utilizará por defecto para las vistas del paquete.
+    | Puedes cambiarlo para usar tu propio layout personalizado.
+    |
+    */
+    'layout' => 'permiso-rol-menu::layouts.app',
+
+    /*
+    |--------------------------------------------------------------------------
     | Vista por defecto del menú
     |--------------------------------------------------------------------------
     |
