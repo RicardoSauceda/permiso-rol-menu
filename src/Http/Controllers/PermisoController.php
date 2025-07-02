@@ -61,10 +61,9 @@ class PermisoController extends Controller
     /**
      * Mostrar permisos específicos de un menú (últimos 2 dígitos)
      */
-    public function showPermisosArbol($claveOrdenPadre = null)
+    public function showPermisosMenu($claveOrdenPadre = null)
     {
         $menuPadre = null;
-        $permisosTree = [];
 
         if ($claveOrdenPadre) {
             // Buscar el menú padre
@@ -74,11 +73,16 @@ class PermisoController extends Controller
                 return redirect()->back()->with('error', 'Menú padre no encontrado.');
             }
 
-            // Obtener permisos específicos (últimos 2 dígitos no son '00')
-            $permisosTree = $this->buildPermisosTree($claveOrdenPadre);
+            $seisDigitosCoincidir = substr($claveOrdenPadre, 0, 6);
+
+            $permisos = Permiso::where('clave_orden', 'like', $seisDigitosCoincidir . '%')
+                ->where('clave_orden', '!=', $claveOrdenPadre)
+                ->orderBy('clave_orden')
+                ->get();
+
         }
 
-        return view('permiso-rol-menu::permisos_arbol', compact('menuPadre', 'permisosTree'));
+        dd($menuPadre, $permisos);
     }
 
     /**
