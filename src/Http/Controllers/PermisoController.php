@@ -8,25 +8,79 @@ use Icatech\PermisoRolMenu\Models\Permiso;
 
 class PermisoController extends Controller
 {
-    public function create()
+    public function index()
     {
-        // Implementar lógica para mostrar formulario de creación si es necesario
+        $permisos = Permiso::orderBy('clave_orden')->paginate(10);
+        return view('permiso-rol-menu::permisos.index', compact('permisos'));
+    }
+
+    public function create($claveOrdenPadre)
+    {
+        $menuPadre = Permiso::where('clave_orden', $claveOrdenPadre)->first();
+
+        if (!$menuPadre) {
+            return redirect()->back()->with('error', 'Menú padre no encontrado.');
+        }
+
+        return view('permiso-rol-menu::permisos.create', compact('menuPadre', 'claveOrdenPadre'));
     }
 
     public function store(Request $request)
     {
         try {
-            $permiso = $request->validate([
+            $data = $request->validate([
                 'nombre' => 'required|string|max:255',
                 'ruta_corta' => 'nullable|sometimes|string|max:255',
-                'descripcion' => 'nullable|string|max:500'
+                'descripcion' => 'nullable|string|max:500',
+                'clave_orden_padre' => 'required|string|max:8'
             ]);
 
-            $permiso = Permiso::create($permiso);
-            return redirect()->back()->with('success', 'Permiso creado correctamente.');
+            // Verificar que existe el menú padre
+            $menuPadre = Permiso::where('clave_orden', $data['clave_orden_padre'])->first();
+            if (!$menuPadre) {
+                return redirect()->back()->with('error', 'Menú padre no encontrado.')->withInput();
+            }
+
+            // Generar nueva clave_orden para el permiso específico
+            $claveBase = substr($data['clave_orden_padre'], 0, 6); // Solo los primeros 6 dígitos
+
+            // Buscar el siguiente número disponible en los últimos 2 dígitos
+            $existingPermisos = Permiso::where('clave_orden', 'like', $claveBase . '%')
+                ->where('clave_orden', '!=', $data['clave_orden_padre'])
+                ->where('clave_orden', 'not like', '%00')
+                ->pluck('clave_orden')
+                ->toArray();
+
+            $nextNumber = 1;
+            for ($i = 1; $i <= 99; $i++) {
+                $testClave = $claveBase . str_pad($i, 2, '0', STR_PAD_LEFT);
+                if (!in_array($testClave, $existingPermisos)) {
+                    $nextNumber = $i;
+                    break;
+                }
+            }
+
+            $newClave = $claveBase . str_pad($nextNumber, 2, '0', STR_PAD_LEFT);
+
+            Permiso::create([
+                'nombre' => $data['nombre'],
+                'ruta_corta' => $data['ruta_corta'],
+                'descripcion' => $data['descripcion'],
+                'clave_orden' => $newClave,
+                'activo' => true
+            ]);
+
+            return redirect()->route('permiso-rol-menu.permisos.arbol', $data['clave_orden_padre'])
+                ->with('success', 'Permiso creado correctamente.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al crear el permiso: ' . $e->getMessage())->withInput();
         }
+    }
+
+    public function edit($id)
+    {
+        $permiso = Permiso::findOrFail($id);
+        return view('permiso-rol-menu::permisos.edit', compact('permiso'));
     }
 
     public function update(Request $request, $id)
@@ -37,11 +91,12 @@ class PermisoController extends Controller
             $data = $request->validate([
                 'nombre' => 'required|string|max:255',
                 'ruta_corta' => 'nullable|sometimes|string|max:255',
-                'descripcion' => 'nullable|string|max:500'
+                'descripcion' => 'nullable|string|max:500',
+                'clave_orden' => 'required|string|max:8|unique:permisos,clave_orden,' . $id
             ]);
 
             $permiso->update($data);
-            return redirect()->back()->with('success', 'Permiso actualizado correctamente.');
+            return redirect()->route('permiso-rol-menu.permisos.index')->with('success', 'Permiso actualizado correctamente.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al actualizar el permiso: ' . $e->getMessage())->withInput();
         }
@@ -52,7 +107,7 @@ class PermisoController extends Controller
         try {
             $permiso = Permiso::findOrFail($id);
             $permiso->delete();
-            return redirect()->back()->with('success', 'Permiso eliminado correctamente.');
+            return redirect()->route('permiso-rol-menu.permisos.index')->with('success', 'Permiso eliminado correctamente.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al eliminar el permiso: ' . $e->getMessage());
         }
@@ -68,7 +123,7 @@ class PermisoController extends Controller
         if ($claveOrdenPadre) {
             // Buscar el menú padre
             $menuPadre = Permiso::where('clave_orden', $claveOrdenPadre)->first();
-            
+
             if (!$menuPadre) {
                 return redirect()->back()->with('error', 'Menú padre no encontrado.');
             }
@@ -79,10 +134,9 @@ class PermisoController extends Controller
                 ->where('clave_orden', '!=', $claveOrdenPadre)
                 ->orderBy('clave_orden')
                 ->get();
-
         }
 
-        dd($menuPadre, $permisos);
+        return view('permiso-rol-menu::permisos_menu', compact('menuPadre', 'permisos', 'claveOrdenPadre'));
     }
 
     /**
@@ -114,14 +168,14 @@ class PermisoController extends Controller
         ]);
 
         $menuPadre = Permiso::where('clave_orden', $data['clave_orden_padre'])->first();
-        
+
         if (!$menuPadre) {
             return redirect()->back()->with('error', 'Menú padre no encontrado.');
         }
 
         // Generar nueva clave_orden para el permiso específico
         $claveBase = $data['clave_orden_padre']; // Los primeros 6 dígitos
-        
+
         // Buscar el siguiente número disponible en los últimos 2 dígitos
         $existingPermisos = Permiso::where('clave_orden', 'like', $claveBase . '%')
             ->where('clave_orden', '!=', $claveBase)

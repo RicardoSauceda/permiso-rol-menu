@@ -44,7 +44,7 @@
 
     <!-- Main Content -->
     <div class="container-fluid py-4">
-        @yield('contenido')
+        @yield('content')
     </div>
 
     <!-- Bootstrap JS -->

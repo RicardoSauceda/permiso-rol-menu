@@ -7,7 +7,9 @@ use Icatech\PermisoRolMenu\Http\Controllers\MenuController;
 
 Route::prefix('permiso-rol-menu')->name('permiso-rol-menu.')->group(function () {
     // Rutas para Permisos
+    Route::get('permisos/{claveOrdenPadre}/create', [PermisoController::class, 'create'])->name('permisos.create');
     Route::post('permisos', [PermisoController::class, 'store'])->name('permisos.store');
+    Route::get('permisos/{id}/edit', [PermisoController::class, 'edit'])->name('permisos.edit');
     Route::put('permisos/{id}', [PermisoController::class, 'update'])->name('permisos.update');
     Route::delete('permisos/{id}', [PermisoController::class, 'destroy'])->name('permisos.destroy');
 
