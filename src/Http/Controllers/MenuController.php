@@ -134,7 +134,16 @@ class MenuController extends Controller
         $tree = [];
 
         $filtered = $menus->filter(function ($menu) use ($nivel, $claveProveniente) {
-            $segmentos = str_split($menu->clave_orden, 2);
+            $clave = $menu->clave_orden;
+
+            // Filtrar elementos de 8 dígitos completos que NO terminan en 00
+            // ✅ SÍ mostrar: 01010100 (8 dígitos pero termina en 00)
+            // ❌ NO mostrar: 01010101, 01010102, 01010199 (8 dígitos que NO terminan en 00)
+            if (preg_match('/^\d{8}$/', $clave) && !preg_match('/^\d{6}00$/', $clave)) {
+                return false;
+            }
+
+            $segmentos = str_split($clave, 2);
             if ($nivel === 1) {
                 return $segmentos[0] !== '00' && $segmentos[1] === '00' && $segmentos[2] === '00';
             }
