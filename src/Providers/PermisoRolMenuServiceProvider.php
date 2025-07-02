@@ -15,7 +15,11 @@ class PermisoRolMenuServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        // Registrar archivo de configuración
+        $this->mergeConfigFrom(
+            __DIR__ . '/../../config/permiso-rol-menu.php',
+            'permiso-rol-menu'
+        );
     }
 
     /**
@@ -31,31 +35,31 @@ class PermisoRolMenuServiceProvider extends ServiceProvider
             // Publicar migraciones
             $this->publishes([
                 __DIR__ . '/../../database/migrations' => database_path('migrations'),
-            ], 'icatech-permiso-rol-menu-migrations');
+            ], 'permiso-rol-menu-migrations');
 
             // Publicar vistas
             $this->publishes([
                 __DIR__ . '/../../resources/views' => resource_path('views/vendor/permiso-rol-menu'),
-            ], 'icatech-permiso-rol-menu-views');
+            ], 'permiso-rol-menu-views');
 
             // Publicar configuración
             $this->publishes([
                 __DIR__ . '/../../config/permiso-rol-menu.php' => config_path('permiso-rol-menu.php'),
-            ], 'icatech-permiso-rol-menu-config');
+            ], 'permiso-rol-menu-config');
 
             // Publicar assets CSS y JS
             $this->publishes([
                 __DIR__ . '/../../resources/assets/css' => public_path('vendor/permiso-rol-menu/css'),
-            ], 'icatech-permiso-rol-menu-css');
+            ], 'permiso-rol-menu-css');
 
             $this->publishes([
                 __DIR__ . '/../../resources/assets/js' => public_path('vendor/permiso-rol-menu/js'),
-            ], 'icatech-permiso-rol-menu-js');
+            ], 'permiso-rol-menu-js');
 
             // Publicar todos los assets juntos
             $this->publishes([
                 __DIR__ . '/../../resources/assets' => public_path('vendor/permiso-rol-menu'),
-            ], 'icatech-permiso-rol-menu-assets');
+            ], 'permiso-rol-menu-assets');
         }
 
         // Cargar migraciones automáticamente si el usuario lo prefiere
