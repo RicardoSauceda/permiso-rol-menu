@@ -33,41 +33,40 @@
                 @if(count($main['submenus']))
                 <div class="dropdown-menu" aria-labelledby="menu{{$main['permiso']->id}}">
                     @foreach($main['submenus'] as $sub)
-                    @if($sub['permiso'])
-                    @if(count($sub['submenus']))
-                    <div class="dropdown-submenu">
-                        <a class="dropdown-item dropdown-toggle" href="#" id="submenu{{$sub['permiso']->id}}">
-                            @if(!empty($sub['permiso']->icono))
-                                <i class="{{ $sub['permiso']->icono }} mr-2"></i>
-                            @endif
-                            {{ $sub['permiso']->nombre }}
-                        </a>
-                        <ul class="dropdown-menu">
-                            @foreach($sub['submenus'] as $subsub)
-                            @if($subsub['permiso'])
-                            <li>
-                                <a class="dropdown-item"
-                                    href="{{ $subsub['permiso']->ruta_corta ? route($subsub['permiso']->ruta_corta) : '#' }}">
-                                    @if(!empty($subsub['permiso']->icono))
-                                        <i class="{{ $subsub['permiso']->icono }} mr-2"></i>
+                        @if($sub['permiso'])
+                            @if(count($sub['submenus']))
+                            <div class="dropdown-submenu">
+                                <a class="dropdown-item dropdown-toggle" href="#" id="submenu{{$sub['permiso']->id}}">
+                                    @if(!empty($sub['permiso']->icono))
+                                        <i class="{{ $sub['permiso']->icono }} mr-2"></i>
                                     @endif
-                                    {{ $subsub['permiso']->nombre }}
+                                    {{ $sub['permiso']->nombre }}
                                 </a>
-                            </li>
+                                <ul class="dropdown-menu">
+                                    @foreach($sub['submenus'] as $subsub)
+                                        @if($subsub['permiso'])
+                                        <li>
+                                            <a class="dropdown-item" href="{{ $subsub['permiso']->ruta_corta ? route($subsub['permiso']->ruta_corta) : '#' }}">
+                                                @if(!empty($subsub['permiso']->icono))
+                                                    <i class="{{ $subsub['permiso']->icono }} mr-2"></i>
+                                                @endif
+                                                {{ $subsub['permiso']->nombre }}
+                                            </a>
+                                        </li>
+                                        @endif
+                                    @endforeach
+                                </ul>
+                            </div>
+                            @else
+                            <a class="dropdown-item"
+                                href="{{ $sub['permiso']->ruta_corta ? route($sub['permiso']->ruta_corta) : '#' }}">
+                                @if(!empty($sub['permiso']->icono))
+                                    <i class="{{ $sub['permiso']->icono }} mr-2"></i>
+                                @endif
+                                {{ $sub['permiso']->nombre }}
+                            </a>
                             @endif
-                            @endforeach
-                        </ul>
-                    </div>
-                    @else
-                    <a class="dropdown-item"
-                        href="{{ $sub['permiso']->ruta_corta ? route($sub['permiso']->ruta_corta) : '#' }}">
-                        @if(!empty($sub['permiso']->icono))
-                            <i class="{{ $sub['permiso']->icono }} mr-2"></i>
                         @endif
-                        {{ $sub['permiso']->nombre }}
-                    </a>
-                    @endif
-                    @endif
                     @endforeach
                 </div>
                 @endif
@@ -78,30 +77,29 @@
 
         <ul class="navbar-nav ml-auto nav-flex-icons">
             @if(method_exists(auth()->user(), 'unreadNotifications'))
-            <li class="nav-item g-mx-5-lg dropdown">
-                <a class="nav-link g-color-2025--hover dropdown-toggle" id="navbarDropdownMenuLink"
-                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Notificaciones
-                    @if (count(auth()->user()->unreadNotifications))
-                    <span class="badge badge-pill badge-primary ml-2">
-                        {{ count(auth()->user()->unreadNotifications) }}
-                    </span>
-                    @endif
-                </a>
-                <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right g-color-2025--hover">
-                    @foreach (auth()->user()->unreadNotifications as $notification)
-                    <a href="{{ $notification->data['url'] ?? '#' }}" class="dropdown-item">
-                        <i class="fas fa-envelope mr-2"></i> {{ $notification->data['titulo'] ?? 'Notificación' }}
-                        <br>{{ $notification->data['cuerpo'] ?? 'Contenido de la notificación' }}
-                        <br><span class="float-right text-muted text-sm">{{ $notification->created_at->diffForHumans()
-                            }}</span>
+                <li class="nav-item g-mx-5-lg dropdown">
+                    <a class="nav-link g-color-2025--hover dropdown-toggle" id="navbarDropdownMenuLink"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Notificaciones
+                        @if (count(auth()->user()->unreadNotifications))
+                        <span class="badge badge-pill badge-primary ml-2">
+                            {{ count(auth()->user()->unreadNotifications) }}
+                        </span>
+                        @endif
                     </a>
-                    @endforeach
-                    <a href='#' class="dropdown-item">
-                        <i class="fas fa-history mr-2"></i> Historial de Notificaciones
-                    </a>
-                </div>
-            </li>
+                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right g-color-2025--hover">
+                        @foreach (auth()->user()->unreadNotifications as $notification)
+                        <a href="{{ $notification->data['url'] ?? '#' }}" class="dropdown-item">
+                            <i class="fas fa-envelope mr-2"></i> {{ $notification->data['titulo'] ?? 'Notificación' }}
+                            <br>{{ $notification->data['cuerpo'] ?? 'Contenido de la notificación' }}
+                            <br><span class="float-right text-muted text-sm">{{ $notification->created_at->diffForHumans() }}</span>
+                        </a>
+                        @endforeach
+                        <a href='#' class="dropdown-item">
+                            <i class="fas fa-history mr-2"></i> Historial de Notificaciones
+                        </a>
+                    </div>
+                </li>
             @endif
             <li class="nav-item avatar dropdown">
                 <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown"
