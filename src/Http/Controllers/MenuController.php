@@ -18,7 +18,7 @@ class MenuController extends Controller
                 'ruta_corta' => 'required|string|max:255',
                 'descripcion' => 'nullable|string|max:500',
                 'icono' => 'nullable|string|max:255',
-                'clave_orden' => 'nullable|digits:6',
+                'clave_orden' => 'nullable|digits:6|unique:tblz_permisos,clave_orden',
                 'activo' => 'boolean',
             ]);
 
@@ -39,7 +39,7 @@ class MenuController extends Controller
                 'ruta_corta' => 'required|string|max:255',
                 'descripcion' => 'nullable|string|max:500',
                 'icono' => 'nullable|string|max:255',
-                'clave_orden' => 'nullable|digits:6',
+                'clave_orden' => 'nullable|digits:6|unique:tblz_permisos,clave_orden,' . $id,
                 'activo' => 'boolean',
             ]);
 
@@ -59,5 +59,171 @@ class MenuController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al eliminar el menú: ' . $e->getMessage());
         }
+    }
+
+    // Funciones para manejar el árbol de menús
+
+    public function treeStore(Request $request)
+    {
+        $data = $request->validate([
+            'permisoName'        => 'required|string|max:255',
+            'rutaCorta'          => 'required|string|max:255',
+            'permisoDescripcion' => 'nullable|string',
+            'clave_orden_padre'  => 'nullable|string|max:6',
+        ]);
+
+        $menu = new Permiso;
+        $menu->nombre = trim($data['permisoName']);
+        $menu->ruta_corta = trim($data['rutaCorta']);
+        $menu->descripcion = trim($data['permisoDescripcion'] ?? '');
+
+        $clavePadre = $data['clave_orden_padre'] ?? null;
+        $parent = null;
+        if ($clavePadre) {
+            $parent = Permiso::where('clave_orden', $clavePadre)->first();
+        }
+        if ($parent && $parent->clave_orden) {
+            $clavePadre = $parent->clave_orden;
+
+            if (substr($clavePadre, 2, 6) === '000000') { // XX000000
+                $prefixLen = 2;
+                $maxItems = 99;
+            } elseif (substr($clavePadre, 4, 4) === '0000') { // XXXX0000  
+                $prefixLen = 4;
+                $maxItems = 99;
+            } elseif (substr($clavePadre, 6, 2) === '00') { // XXXXXX00
+                $prefixLen = 6;
+                $maxItems = 99;
+            } else { // XXXXXXXX - Los nuevos 2 dígitos
+                $prefixLen = 8;
+                $maxItems = 99;
+            }
+
+            $prefix = substr($clavePadre, 0, $prefixLen);
+
+            // Buscar el siguiente número disponible
+            $existingItems = Permiso::where('clave_orden', 'like', $prefix . '%')
+                ->where('clave_orden', '!=', $clavePadre)
+                ->pluck('clave_orden')
+                ->toArray();
+
+            $nextNumber = 1;
+            $paddingLen = ($prefixLen === 8) ? 0 : 8 - $prefixLen - 2; // Calcular padding restante
+
+            for ($i = 1; $i <= $maxItems; $i++) {
+                $testClave = $prefix . str_pad($i, 2, '0', STR_PAD_LEFT) . str_repeat('0', $paddingLen);
+                if (!in_array($testClave, $existingItems)) {
+                    $nextNumber = $i;
+                    break;
+                }
+            }
+
+            $menu->clave_orden = $prefix . str_pad($nextNumber, 2, '0', STR_PAD_LEFT) . str_repeat('0', $paddingLen);
+        } else {
+            $menu->clave_orden = '01000000'; // Primer menú principal
+        }
+        $menu->activo = true;
+        $menu->save();
+        return redirect()->route('menus.index')
+            ->with('success', 'Menú agregado correctamente.');
+    }
+
+
+    private function buildMenuTree($menus, $nivel = 1, $claveProveniente = '')
+    {
+        $tree = [];
+
+        $filtered = $menus->filter(function ($menu) use ($nivel, $claveProveniente) {
+            $clave = $menu->clave_orden;
+
+            // Filtrar elementos de 8 dígitos completos que NO terminan en 00
+            // ✅ SÍ mostrar: 01010100 (8 dígitos pero termina en 00)
+            // ❌ NO mostrar: 01010101, 01010102, 01010199 (8 dígitos que NO terminan en 00)
+            if (preg_match('/^\d{8}$/', $clave) && !preg_match('/^\d{6}00$/', $clave)) {
+                return false;
+            }
+
+            $segmentos = str_split($clave, 2);
+            if ($nivel === 1) {
+                return $segmentos[0] !== '00' && $segmentos[1] === '00' && $segmentos[2] === '00';
+            }
+            $parentSeg = str_split($claveProveniente, 2);
+            if ($nivel === 2) {
+                return $segmentos[0] === $parentSeg[0] && $segmentos[1] !== '00' && $segmentos[2] === '00';
+            }
+            if ($nivel === 3) {
+                return $segmentos[0] === $parentSeg[0] && $segmentos[1] === $parentSeg[1] && $segmentos[2] !== '00';
+            }
+            return false;
+        });
+
+        foreach ($filtered as $menu) {
+            $item = $menu->toArray();
+            $submenu = $this->buildMenuTree($menus, $nivel + 1, $menu->clave_orden);
+            if (!empty($submenu)) {
+                $item['submenu'] = $submenu;
+            }
+            $tree[] = $item;
+        }
+
+        return $tree;
+    }
+
+    public function statusUpdate(Request $request, $id)
+    {
+        $menu = Permiso::find($id);
+        if ($menu) {
+            $newStatus = !$menu->activo;
+            $menu->activo = $newStatus;
+            $menu->save();
+
+            $updatedChildIds = $this->updateSubmenusStatus($menu, $newStatus);
+            // Incluir el ID del menú padre
+            $allUpdated = array_merge([$menu->id], $updatedChildIds);
+            return response()->json([
+                'success' => true,
+                'message' => 'Estado actualizado correctamente',
+                'updatedIds' => $allUpdated
+            ]);
+        }
+        return response()->json(['success' => false, 'message' => 'Menu no encontrado'], 404);
+    }
+
+    /**
+     * Actualiza el estado de los submenus y devuelve IDs actualizados.
+     *
+     * @param Permiso $menu
+     * @param bool $status
+     * @return array
+     */
+    private function updateSubmenusStatus(Permiso $menu, bool $status): array
+    {
+        $clave = $menu->clave_orden;
+
+        // Determinar el nivel y prefijo
+        if (substr($clave, 2, 6) === '000000') { // XX000000 - Nivel 1
+            $prefixLen = 2;
+        } elseif (substr($clave, 4, 4) === '0000') { // XXXX0000 - Nivel 2
+            $prefixLen = 4;
+        } elseif (substr($clave, 6, 2) === '00') { // XXXXXX00 - Nivel 3
+            $prefixLen = 6;
+        } else { // XXXXXXXX - Nivel 4 (acciones)
+            $prefixLen = 8; // Solo afecta a sí mismo, no tiene hijos
+        }
+
+        $prefix = substr($clave, 0, $prefixLen);
+
+        $query = Permiso::where('clave_orden', 'like', $prefix . '%')
+            ->where('id', '!=', $menu->id);
+
+        // IMPORTANTE: Si es una acción (nivel 4), no buscar hijos
+        if ($prefixLen === 8) {
+            return []; // Las acciones no tienen hijos
+        }
+
+        $ids = $query->pluck('id')->toArray();
+        $query->update(['activo' => $status]);
+
+        return $ids;
     }
 }

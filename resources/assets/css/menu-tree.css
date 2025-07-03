@@ -1,0 +1,87 @@
+/* Estilos para el árbol de menús */
+.tree-level-0 {
+    font-weight: bold;
+}
+
+.tree-level-1 {
+    padding-left: 20px;
+}
+
+.tree-level-2 {
+    padding-left: 40px;
+}
+
+.tree-level-3 {
+    padding-left: 60px;
+}
+
+.tree-level-4 {
+    padding-left: 80px;
+}
+
+.tree-level-5 {
+    padding-left: 100px;
+}
+
+.menu-tree {
+    list-style: none;
+    padding: 0;
+}
+
+.menu-tree li {
+    margin-bottom: 5px;
+}
+
+.status {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.status:hover {
+    opacity: 0.8;
+}
+
+/* Estilos específicos para permisos */
+.tree-level-permission {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.tree-level-permission:hover {
+    background-color: #e9ecef;
+}
+
+.permission-icon {
+    width: 24px;
+    text-align: center;
+}
+
+.permission-status {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.permission-status:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+
+.permission-name {
+    color: #495057;
+    font-size: 1rem;
+}
+
+.dropdown-toggle::after {
+    display: none;
+}
+
+#permisos-tree .card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+#permisos-tree .bg-light {
+    background-color: #f8f9fa !important;
+    border-left: 4px solid #007bff;
+}

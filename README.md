@@ -2,6 +2,24 @@
 
 Este paquete proporciona funcionalidades para manejar permisos, roles y menús con convenciones en español.
 
+## Compatibilidad
+
+- ✅ **Laravel 7.x** - Compatible
+- ✅ **Laravel 8.x** - Compatible  
+- ✅ **Laravel 9.x** - Compatible
+- ✅ **Laravel 10.x** - Compatible
+- ✅ **PHP 7.3+** - Compatible
+- ✅ **PHP 8.x** - Compatible
+
+## Características Principales
+
+- ✅ **Sistema de permisos y roles** con convenciones en español
+- ✅ **Menú dinámico jerárquico** basado en permisos
+- ✅ **View Composer automático** para vistas de navegación
+- ✅ **Vistas template** personalizables
+- ✅ **Middleware de permisos** integrado
+- ✅ **Gates automáticos** para Laravel
+
 ## Instalación
 
 ```bash
@@ -47,7 +65,115 @@ class User extends Authenticatable
 }
 ```
 
-## Características
+## Funcionalidades del Menú Dinámico
+
+El paquete incluye un sistema completo de menú dinámico que se construye automáticamente basado en los permisos del usuario.
+
+### Uso Básico del Menú
+
+El paquete registra automáticamente un view composer que proporciona la variable `$menuDinamico` a las siguientes vistas:
+
+- `theme.sivyc.menuDinamico`
+- `vendor.permiso-rol-menu.navbar`
+- `layouts.navbar`
+- `permiso-rol-menu::navbar`
+
+### Opción 1: Usar la vista incluida
+
+```blade
+@include('permiso-rol-menu::navbar')
+```
+
+### Opción 2: Personalizar la vista
+
+Publica las vistas para personalizarlas:
+
+```bash
+php artisan vendor:publish --tag=icatech-permiso-rol-menu-views
+```
+
+Luego edita el archivo en `resources/views/vendor/permiso-rol-menu/navbar.blade.php`.
+
+### Opción 3: Usar el view composer en tu vista existente
+
+El view composer se aplica automáticamente, por lo que puedes usar `$menuDinamico` directamente:
+
+```blade
+<ul class="navbar-nav mr-auto">
+    @foreach($menuDinamico as $main)
+    @if($main['permiso'])
+    <li class="nav-item dropdown">
+        <a class="nav-link" href="#" data-toggle="dropdown">
+            {{ $main['permiso']->nombre }}
+        </a>
+        @if(count($main['submenus']))
+        <div class="dropdown-menu">
+            @foreach($main['submenus'] as $sub)
+            @if($sub['permiso'])
+            <a class="dropdown-item" href="{{ route($sub['permiso']->ruta_corta) }}">
+                {{ $sub['permiso']->nombre }}
+            </a>
+            @endif
+            @endforeach
+        </div>
+        @endif
+    </li>
+    @endif
+    @endforeach
+</ul>
+```
+
+## Configuración Avanzada
+
+### Publicar configuración
+
+```bash
+php artisan vendor:publish --tag=icatech-permiso-rol-menu-config
+```
+
+En `config/permiso-rol-menu.php` puedes configurar:
+
+```php
+return [
+    // Vista por defecto del menú
+    'navbar_view' => 'permiso-rol-menu::navbar',
+    
+    // Aplicar view composer automáticamente
+    'auto_compose' => true,
+    
+    // Vistas que recibirán automáticamente el view composer
+    'auto_compose_views' => [
+        'theme.sivyc.menuDinamico',
+        'vendor.permiso-rol-menu.navbar',
+        'layouts.navbar',
+        'permiso-rol-menu::navbar'
+    ],
+    
+    // Configuración de tablas
+    'user_table' => 'tblz_usuarios',
+    'user_model' => \App\Models\User::class,
+];
+```
+
+## Estructura del Menú
+
+El sistema de menú utiliza un código jerárquico en el campo `clave_orden`:
+
+- **Menú principal**: `XX0000` (ej: `010000`, `020000`)
+- **Submenú**: `XXXX00` (ej: `010100`, `010200`)  
+- **Sub-submenú**: `XXXXXX` (ej: `010101`, `010102`)
+
+### Ejemplo de estructura de permisos:
+
+```
+010000 - Administración (menú principal)
+├── 010100 - Usuarios (submenú)
+│   ├── 010101 - Crear Usuario (sub-submenú)
+│   └── 010102 - Editar Usuario (sub-submenú)
+└── 010200 - Configuración (submenú)
+    ├── 010201 - Configuración General
+    └── 010202 - Configuración Avanzada
+```
 
 - **Auto-discovery**: Se configura automáticamente sin necesidad de registrar Service Providers
 - **Tabla de usuarios en español**: Automáticamente configura la tabla como `tblz_usuarios`
