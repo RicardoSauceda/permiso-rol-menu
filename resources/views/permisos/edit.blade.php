@@ -38,11 +38,11 @@
                             <small class="text-muted">ID: {{ $permiso->id }} | Clave: {{ $permiso->clave_orden
                                 }}</small>
                         </div>
-                        {{-- <div class="col-4 text-right">
-                            <a href="{{ route('permiso-rol-menu.permisos.index') }}" class="btn btn-danger">
+                        <div class="col-4 text-right">
+                            <a href="{{ route('permiso-rol-menu.permisos.arbol', ['claveOrdenPadre' => $permiso->clave_padre ]) }}">
                                 <i class="fas fa-arrow-left"></i> Volver
                             </a>
-                        </div> --}}
+                        </div>
                     </div>
                 </div>
                 <div class="card-body">
