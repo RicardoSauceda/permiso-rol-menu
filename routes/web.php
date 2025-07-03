@@ -17,11 +17,11 @@ Route::prefix('permiso-rol-menu')->name('permiso-rol-menu.')->middleware(['web',
     Route::get('permisos/arbol/{claveOrdenPadre?}', [PermisoController::class, 'showPermisosMenu'])->name('permisos.arbol');
     Route::post('permisos/store-permiso', [PermisoController::class, 'storePermiso'])->name('permisos.store-permiso');
     Route::post('permisos/{id}/status-update', [PermisoController::class, 'updatePermisoStatus'])->name('permisos.status.update');
-
     // Rutas para Roles
     Route::post('roles', [RolController::class, 'store'])->name('roles.store');
     Route::put('roles/{id}', [RolController::class, 'update'])->name('roles.update');
     Route::delete('roles/{id}', [RolController::class, 'destroy'])->name('roles.destroy');
+    Route::get('/rol/menus/{id}', [RolController::class, 'showMenus'])->name('rol.menus.show');
 
     // Rutas para Menús (tipo de permiso)
     Route::post('/menus/{id}/status-update', [MenuController::class, 'statusUpdate'])->name('tree.menus.status.update');

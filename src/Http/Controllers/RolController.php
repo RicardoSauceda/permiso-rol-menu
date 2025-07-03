@@ -5,12 +5,27 @@ namespace Icatech\PermisoRolMenu\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Icatech\PermisoRolMenu\Models\Rol;
+use Icatech\PermisoRolMenu\Models\Permiso;
 
 class RolController extends Controller
 {
     public function create()
     {
         // Implementar lógica para mostrar formulario de creación si es necesario
+    }
+
+    public function showMenus($id)
+    {
+        $menus = Permiso::whereNotNull('clave_orden')
+            ->select('id', 'nombre', 'ruta_corta', 'descripcion', 'activo', 'clave_orden')
+            ->orderBy('clave_orden')
+            ->get();
+
+        // Utilizar directamente la lógica de buildMenuTree
+        $menuController = new MenuController();
+        $menuTree = $menuController->buildMenuTree($menus);
+
+        return view('permiso-rol-menu::rol.permisos', compact('menuTree'));
     }
 
     public function store(Request $request)
