@@ -5,7 +5,7 @@ use Icatech\PermisoRolMenu\Http\Controllers\PermisoController;
 use Icatech\PermisoRolMenu\Http\Controllers\RolController;
 use Icatech\PermisoRolMenu\Http\Controllers\MenuController;
 
-Route::prefix('permiso-rol-menu')->name('permiso-rol-menu.')->middleware(['web'])->group(function () {
+Route::prefix('permiso-rol-menu')->name('permiso-rol-menu.')->middleware(['web', 'auth'])->group(function () {
     // Rutas para Permisos
     Route::get('permisos/{claveOrdenPadre}/create', [PermisoController::class, 'create'])->name('permisos.create');
     Route::post('permisos', [PermisoController::class, 'store'])->name('permisos.store');
