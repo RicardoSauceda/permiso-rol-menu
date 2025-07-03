@@ -10,23 +10,23 @@
         <div class="col-xl-8 mx-auto">
             {{-- Mostrar mensajes de éxito o error --}}
             @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert"">
-                    <span class="alert-icon"><i class="ni ni-like-2"></i></span>
-                    <span class="alert-text"><strong>¡Éxito!</strong> {{ session('success') }}</span>
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
+            <div class="alert alert-success alert-dismissible fade show" role="alert"">
+                    <span class=" alert-icon"><i class="ni ni-like-2"></i></span>
+                <span class="alert-text"><strong>¡Éxito!</strong> {{ session('success') }}</span>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
             @endif
 
             @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <span class="alert-icon"><i class="ni ni-support-16"></i></span>
-                    <span class="alert-text"><strong>¡Error!</strong> {{ session('error') }}</span>
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span class="alert-icon"><i class="ni ni-support-16"></i></span>
+                <span class="alert-text"><strong>¡Error!</strong> {{ session('error') }}</span>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
             @endif
 
             <div class="card p-2">
@@ -35,7 +35,8 @@
                     <div class="row align-items-center">
                         <div class="col-8">
                             <h3 class="mb-0">EDITAR PERMISO</h3>
-                            <small class="text-muted">ID: {{ $permiso->id }} | Clave: {{ $permiso->clave_orden }}</small>
+                            <small class="text-muted">ID: {{ $permiso->id }} | Clave: {{ $permiso->clave_orden
+                                }}</small>
                         </div>
                         {{-- <div class="col-4 text-right">
                             <a href="{{ route('permiso-rol-menu.permisos.index') }}" class="btn btn-danger">
@@ -51,7 +52,9 @@
 
                         <div class="form-group">
                             <label for="clave_orden" class="form-label">Clave de Orden</label>
-                            <input type="text" class="form-control" id="clave_orden" name="clave_orden" readonly value="{{ old('clave_orden', $permiso->clave_orden) }}" placeholder="Ej: 01000000" maxlength="8" required>
+                            <input type="text" class="form-control" id="clave_orden" name="clave_orden" readonly
+                                value="{{ old('clave_orden', $permiso->clave_orden) }}" placeholder="Ej: 01000000"
+                                maxlength="8" required>
                             <small class="form-text text-muted">
                                 Formato: 8 dígitos. Los últimos 2 dígitos en '00' para menús principales.
                             </small>
@@ -66,7 +69,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="ruta_corta" class="form-label">Ruta Corta<span class="text-danger">*</span></label>
+                            <label for="ruta_corta" class="form-label">Ruta Corta<span
+                                    class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="ruta_corta" name="ruta_corta"
                                 value="{{ old('ruta_corta', $permiso->ruta_corta) }}" placeholder="ruta/del/permiso"
                                 maxlength="255">
@@ -94,7 +98,7 @@
                         @endif
 
                         <div class="form-group text-right">
-                            <a href="{{ route('permiso-rol-menu.permisos.arbol', ['claveOrdenPadre' => $permiso->clave_orden]) }}"
+                            <a href="{{ route('permiso-rol-menu.permisos.arbol', ['claveOrdenPadre' => $permiso->clave_padre ]) }}"
                                 class="btn btn-danger">
                                 Cancelar
                             </a>

@@ -52,8 +52,7 @@
                                     <td>{{ $permiso->nombre }}</td>
                                     <td>{{ $permiso->descripcion }}</td>
                                     <td>
-                                        <a href="{{ route('permiso-rol-menu.permisos.edit', $permiso->id) }}"
-                                            class="btn btn-primary btn-sm">Editar</a>
+                                        <a href="{{ route('permiso-rol-menu.permisos.edit', $permiso->id) }}" class="btn btn-primary btn-sm">Editar</a>
                                         <form action="{{ route('permiso-rol-menu.permisos.destroy', $permiso->id) }}" method="POST" style="display:inline;"
                                             onsubmit="return confirm('¿Está seguro de eliminar este permiso?')">
                                             @csrf
