@@ -10,7 +10,7 @@ return [
     | Puedes cambiarlo para usar tu propio layout personalizado.
     |
     */
-    'layout' => 'permiso-rol-menu::layouts.app',
+    // 'layout' => 'permiso-rol-menu::layouts.app',
 
     /*
     |--------------------------------------------------------------------------

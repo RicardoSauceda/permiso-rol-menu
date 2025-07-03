@@ -8,13 +8,29 @@
 <div class="container-fluid mt--6">
     <div class="row">
         <div class="col-xl-8 mx-auto">
+            {{-- Mostrar mensajes de éxito o error --}}
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert"">
+                    <span class="alert-icon"><i class="ni ni-like-2"></i></span>
+                    <span class="alert-text"><strong>¡Éxito!</strong> {{ session('success') }}</span>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span class="alert-icon"><i class="ni ni-support-16"></i></span>
+                    <span class="alert-text"><strong>¡Error!</strong> {{ session('error') }}</span>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            @endif
+
             <div class="card p-2">
                 <div class="card-header border-0">
-                    @if ($message = Session::get('error'))
-                    <div class="alert alert-danger">
-                        <p>{{ $message }}</p>
-                    </div>
-                    @endif
 
                     <div class="row align-items-center">
                         <div class="col-8">

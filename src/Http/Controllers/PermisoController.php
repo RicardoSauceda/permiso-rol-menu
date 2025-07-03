@@ -92,11 +92,11 @@ class PermisoController extends Controller
                 'nombre' => 'required|string|max:255',
                 'ruta_corta' => 'nullable|sometimes|string|max:255',
                 'descripcion' => 'nullable|string|max:500',
-                'clave_orden' => 'required|string|max:8|unique:permisos,clave_orden,' . $id
+                'clave_orden' => 'required|string|max:8|unique:tblz_permisos,clave_orden,' . $id
             ]);
 
             $permiso->update($data);
-            return redirect()->route('permiso-rol-menu.permisos.index')->with('success', 'Permiso actualizado correctamente.');
+            return redirect()->back()->with('success', 'Permiso actualizado correctamente.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al actualizar el permiso: ' . $e->getMessage())->withInput();
         }
