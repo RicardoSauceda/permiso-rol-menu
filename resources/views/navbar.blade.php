@@ -25,6 +25,9 @@
             <li class="nav-item g-mx-5--lg dropdown">
                 <a class="nav-link g-color-2025--hover" href="#" id="menu{{$main['permiso']->id}}"
                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    @if(!empty($main['permiso']->icono))
+                        <i class="{{ $main['permiso']->icono }} mr-2"></i>
+                    @endif
                     {{ $main['permiso']->nombre }}
                 </a>
                 @if(count($main['submenus']))
@@ -34,6 +37,9 @@
                     @if(count($sub['submenus']))
                     <div class="dropdown-submenu">
                         <a class="dropdown-item dropdown-toggle" href="#" id="submenu{{$sub['permiso']->id}}">
+                            @if(!empty($sub['permiso']->icono))
+                                <i class="{{ $sub['permiso']->icono }} mr-2"></i>
+                            @endif
                             {{ $sub['permiso']->nombre }}
                         </a>
                         <ul class="dropdown-menu">
@@ -42,6 +48,9 @@
                             <li>
                                 <a class="dropdown-item"
                                     href="{{ $subsub['permiso']->ruta_corta ? route($subsub['permiso']->ruta_corta) : '#' }}">
+                                    @if(!empty($subsub['permiso']->icono))
+                                        <i class="{{ $subsub['permiso']->icono }} mr-2"></i>
+                                    @endif
                                     {{ $subsub['permiso']->nombre }}
                                 </a>
                             </li>
@@ -52,6 +61,9 @@
                     @else
                     <a class="dropdown-item"
                         href="{{ $sub['permiso']->ruta_corta ? route($sub['permiso']->ruta_corta) : '#' }}">
+                        @if(!empty($sub['permiso']->icono))
+                            <i class="{{ $sub['permiso']->icono }} mr-2"></i>
+                        @endif
                         {{ $sub['permiso']->nombre }}
                     </a>
                     @endif
