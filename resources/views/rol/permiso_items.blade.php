@@ -14,6 +14,7 @@
                 <small class="text-muted mr-3">({{ $menu['clave_orden'] }})</small>
                 {{-- <div><small>{{ $menu['description'] }}</small></div> --}}
             </div>
+  
         </div>
         <div class="d-flex align-items-center">
             @if(!isset($menu['submenu']) || count($menu['submenu']) == 0)
@@ -24,15 +25,15 @@
                     <span class="d-none d-md-inline">Permisos</span>
                 </a>
             @endif
-            <span id="status-{{ $menu['id'] }}" style="cursor: pointer;" class="status badge badge-{{ $menu['activo'] ? 'success' : 'danger' }} mr-2" data-id-menu="{{ $menu['id'] }}">
-                {{ $menu['activo'] ? 'Activo' : 'Inactivo' }}
-            </span>
+            <div>
+                <input type="checkbox" name="menu[{{ $menu['id'] }}]" value="{{ $menu['id'] }}" {{ $rol->menus->contains($menu['id']) ? 'checked' : '' }}>
+            </div>
         </div>
     </div>
     @if(isset($menu['submenu']) && count($menu['submenu']) > 0)
         <ul id="submenu-{{ $menu['clave_orden'] }}" class="collapse">
             @foreach($menu['submenu'] as $child)
-                @include('permiso-rol-menu::menu_items', ['menu' => $child, 'level' => $level + 1])
+                @include('permiso-rol-menu::rol.permiso_items', ['menu' => $child, 'level' => $level + 1])
             @endforeach
         </ul>
     @endif

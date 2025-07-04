@@ -129,7 +129,7 @@ class MenuController extends Controller
     }
 
 
-    private function buildMenuTree($menus, $nivel = 1, $claveProveniente = '')
+    public function buildMenuTree($menus, $nivel = 1, $claveProveniente = '')
     {
         $tree = [];
 

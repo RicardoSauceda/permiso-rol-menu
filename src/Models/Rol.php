@@ -26,4 +26,9 @@ class Rol extends Model
     {
         return $this->belongsToMany(\App\Models\User::class, 'tblz_usuario_rol', 'rol_id', 'usuario_id');
     }
+    
+    public function menus()
+    {
+        return $this->permisos()->whereNotNull('clave_orden');
+    }
 }

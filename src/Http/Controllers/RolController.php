@@ -16,6 +16,7 @@ class RolController extends Controller
 
     public function showMenus($id)
     {
+        $rol = Rol::findOrFail($id);
         $menus = Permiso::whereNotNull('clave_orden')
             ->select('id', 'nombre', 'ruta_corta', 'descripcion', 'activo', 'clave_orden')
             ->orderBy('clave_orden')
@@ -25,7 +26,7 @@ class RolController extends Controller
         $menuController = new MenuController();
         $menuTree = $menuController->buildMenuTree($menus);
 
-        return view('permiso-rol-menu::rol.permisos', compact('menuTree'));
+        return view('permiso-rol-menu::rol.permisos', compact('menuTree', 'rol'));
     }
 
     public function store(Request $request)

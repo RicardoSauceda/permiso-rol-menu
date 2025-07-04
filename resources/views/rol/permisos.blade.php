@@ -17,7 +17,7 @@
                     @endif
                     <div class="row align-items-center">
                         <div class="col-8">
-                            <h3 class="mb-0">Menu</h3>
+                            <h3 class="mb-0">Menu para rol: {{ $rol->nombre }}</h3>
                         </div>
                     </div>
                 </div>
@@ -28,7 +28,7 @@
                             <ul class="menu-tree">
                                 @if(isset($menuTree) && count($menuTree) > 0)
                                     @foreach($menuTree as $menuItems)
-                                        @include('permiso-rol-menu::permiso_items', ['menu' => $menuItems, 'level' => 0])
+                                        @include('permiso-rol-menu::rol.permiso_items', ['menu' => $menuItems, 'level' => 0])
                                     @endforeach
                                 @else
                                 <li>No hay menús disponibles</li>
