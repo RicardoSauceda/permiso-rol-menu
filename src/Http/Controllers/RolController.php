@@ -29,6 +29,17 @@ class RolController extends Controller
         return view('permiso-rol-menu::rol.permisos', compact('menuTree', 'rol'));
     }
 
+    public function showPermisosMenus($id)
+    {
+        $rol = Rol::findOrFail($id);
+        $permisos = Permiso::where('rol_id', $id)
+            ->select('id', 'nombre', 'ruta_corta', 'descripcion', 'activo', 'clave_orden')
+            ->orderBy('clave_orden')
+            ->get();
+
+        return view('permiso-rol-menu::rol.permisos_menus', compact('permisos', 'rol'));
+    }
+
     public function store(Request $request)
     {
         try {

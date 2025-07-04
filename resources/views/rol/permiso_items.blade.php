@@ -37,36 +37,4 @@
             @endforeach
         </ul>
     @endif
-        @if ($level < 2) 
-        <ul>
-            <li class="tree-level-{{ $level + 1 }} mb-1">
-                <button class="btn btn-link p-0 text-muted small" data-toggle="collapse"
-                    data-target="#add-form-{{ $menu['id'] }}">
-                    <i class="fas fa-plus"></i>
-                    <span class="text-sm">Añadir</span>
-                </button>
-                <div id="add-form-{{ $menu['id'] }}" class="collapse mt-2">
-                    <form method="POST" action="{{ route('permiso-rol-menu.tree.menus.store') }}">
-                        @csrf
-                        <input type="hidden" name="menu" value="1">
-                        <input type="hidden" name="activo" value="1">
-                        <input type="hidden" name="clave_orden_padre" value="{{ $menu['clave_orden'] }}">
-                        <div class="form-group">
-                            <label>Nombre</label>
-                            <input type="text" name="permisoName" class="form-control form-control-sm" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Ruta Corta</label>
-                            <input type="text" name="rutaCorta" class="form-control form-control-sm" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Descripción</label>
-                            <textarea name="permisoDescripcion" class="form-control form-control-sm" rows="2"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-sm btn-primary">Guardar</button>
-                    </form>
-                </div>
-            </li>
-        </ul>
-        @endif
 </li>

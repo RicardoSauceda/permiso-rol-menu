@@ -22,6 +22,7 @@ Route::prefix('permiso-rol-menu')->name('permiso-rol-menu.')->middleware(['web',
     Route::put('roles/{id}', [RolController::class, 'update'])->name('roles.update');
     Route::delete('roles/{id}', [RolController::class, 'destroy'])->name('roles.destroy');
     Route::get('/rol/menus/{id}', [RolController::class, 'showMenus'])->name('rol.menus.show');
+    Route::get('/rol/menus/{id}/permisos', [RolController::class, 'showPermisosMenus'])->name('rol.menus.show');
 
     // Rutas para Menús (tipo de permiso)
     Route::post('/menus/{id}/status-update', [MenuController::class, 'statusUpdate'])->name('tree.menus.status.update');
