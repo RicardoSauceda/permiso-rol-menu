@@ -24,20 +24,9 @@ class RolController extends Controller
 
         // Utilizar directamente la lógica de buildMenuTree
         $menuController = new MenuController();
-        $menuTree = $menuController->buildMenuTree($menus);
+        $menuTree = $menuController->buildMenuTree($menus, 1, null, true);
 
         return view('permiso-rol-menu::rol.permisos', compact('menuTree', 'rol'));
-    }
-
-    public function showPermisosMenus($id)
-    {
-        $rol = Rol::findOrFail($id);
-        $permisos = Permiso::where('rol_id', $id)
-            ->select('id', 'nombre', 'ruta_corta', 'descripcion', 'activo', 'clave_orden')
-            ->orderBy('clave_orden')
-            ->get();
-
-        return view('permiso-rol-menu::rol.permisos_menus', compact('permisos', 'rol'));
     }
 
     public function store(Request $request)

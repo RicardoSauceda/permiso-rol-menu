@@ -129,40 +129,70 @@ class MenuController extends Controller
     }
 
 
-    public function buildMenuTree($menus, $nivel = 1, $claveProveniente = '')
+    public function buildMenuTree($menus, $nivel = 1, $claveProveniente = '', $mostrarPermisos = false)
     {
         $tree = [];
 
-        $filtered = $menus->filter(function ($menu) use ($nivel, $claveProveniente) {
+        $filtered = $menus->filter(function ($menu) use ($nivel, $claveProveniente, $mostrarPermisos) {
             $clave = $menu->clave_orden;
 
-            // Filtrar elementos de 8 dígitos completos que NO terminan en 00
-            // ✅ SÍ mostrar: 01010100 (8 dígitos pero termina en 00)
-            // ❌ NO mostrar: 01010101, 01010102, 01010199 (8 dígitos que NO terminan en 00)
-            if (preg_match('/^\d{8}$/', $clave) && !preg_match('/^\d{6}00$/', $clave)) {
-                return false;
+            if (!$mostrarPermisos) {
+                // Filtrar elementos de 8 dígitos completos que NO terminan en 00
+                // ✅ SÍ mostrar: 01010100 (8 dígitos pero termina en 00)
+                // ❌ NO mostrar: 01010101, 01010102, 01010199 (8 dígitos que NO terminan en 00)
+                if (preg_match('/^\d{8}$/', $clave) && !preg_match('/^\d{6}00$/', $clave)) {
+                    return false;
+                }
             }
 
+
             $segmentos = str_split($clave, 2);
+
             if ($nivel === 1) {
-                return $segmentos[0] !== '00' && $segmentos[1] === '00' && $segmentos[2] === '00';
+                return $segmentos[0] !== '00' && $segmentos[1] === '00' && $segmentos[2] === '00' && $segmentos[3] === '00';
             }
+
             $parentSeg = str_split($claveProveniente, 2);
+
             if ($nivel === 2) {
-                return $segmentos[0] === $parentSeg[0] && $segmentos[1] !== '00' && $segmentos[2] === '00';
+                // Solo acepta claves tipo XXYY0000 (ej: 09020000)
+                return $segmentos[0] === $parentSeg[0] && $segmentos[1] !== '00' && $segmentos[2] === '00' && $segmentos[3] === '00';
             }
+
             if ($nivel === 3) {
-                return $segmentos[0] === $parentSeg[0] && $segmentos[1] === $parentSeg[1] && $segmentos[2] !== '00';
+                // Nivel 3 tradicional: XXYYZZ00
+                $nivel3Tradicional = $segmentos[0] === $parentSeg[0] && $segmentos[1] === $parentSeg[1] && $segmentos[2] !== '00' && $segmentos[3] === '00';
+
+                // Nivel 3 flexible: Si el padre es nivel 2 (XXYY0000), acepta también XXYY00ZZ cuando mostrarPermisos
+                $nivel3Flexible = $mostrarPermisos &&
+                    $parentSeg[2] === '00' && $parentSeg[3] === '00' && // Padre es nivel 2
+                    $segmentos[0] === $parentSeg[0] && $segmentos[1] === $parentSeg[1] &&
+                    $segmentos[2] === '00' && $segmentos[3] !== '00'; // Hijo es XXYY00ZZ
+
+                return $nivel3Tradicional || $nivel3Flexible;
             }
+
+            if ($mostrarPermisos && $nivel === 4) {
+                return $segmentos[0] === $parentSeg[0] && $segmentos[1] === $parentSeg[1] && $segmentos[2] === $parentSeg[2] && $segmentos[3] !== '00';
+            }
+
             return false;
         });
 
         foreach ($filtered as $menu) {
             $item = $menu->toArray();
-            $submenu = $this->buildMenuTree($menus, $nivel + 1, $menu->clave_orden);
-            if (!empty($submenu)) {
-                $item['submenu'] = $submenu;
+
+            // Detectar si es acción (nivel 4): clave de 8 dígitos y NO termina en 00
+            $esAccion = (preg_match('/^\d{8}$/', $menu->clave_orden) && !preg_match('/^\d{6}00$/', $menu->clave_orden));
+
+            // Solo agregar submenús si NO es acción
+            if (($nivel < 4 || $mostrarPermisos) && !$esAccion) {
+                $submenu = $this->buildMenuTree($menus, $nivel + 1, $menu->clave_orden, $mostrarPermisos);
+                if (!empty($submenu)) {
+                    $item['submenu'] = $submenu;
+                }
             }
+
             $tree[] = $item;
         }
 
