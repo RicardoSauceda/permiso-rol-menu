@@ -1,89 +1,184 @@
-class PermisosTree {
+class PermisoRolManager {
     constructor() {
         this.init();
     }
 
     init() {
-        this.bindPermissionStatusToggle();
-        this.bindFormCollapse();
+        this.bindCheckboxEvents();
+        this.setupCSRFToken();
+        this.bindCollapseEvents();
+        this.bindToggleAllButton();
     }
 
-    bindPermissionStatusToggle() {
-        document.querySelectorAll('.permission-status').forEach(statusElement => {
-            statusElement.addEventListener('click', (e) => this.handlePermissionStatusToggle(e));
+    setupCSRFToken() {
+        this.csrfToken = $('meta[name="csrf-token"]').attr('content');
+    }
+
+    bindCheckboxEvents() {
+        $(document).on('change', 'input[type="checkbox"][name^="menu["]', (e) => {
+            this.handleCheckboxChange(e);
         });
     }
 
-    bindFormCollapse() {
-        $(document).on('show.bs.collapse', '#add-permiso-form', function () {
-            // Cerrar otros formularios si están abiertos
-            $('.collapse.show').not(this).collapse('hide');
+    bindToggleAllButton() {
+        $(document).on('click', '#toggle-all-permisos', (e) => {
+            this.handleToggleAll(e);
         });
     }
 
-    handlePermissionStatusToggle(e) {
-        const statusElement = e.target;
-        const permisoId = statusElement.getAttribute('data-id-permiso');
-        const currentStatus = statusElement.classList.contains('badge-success') ? 'Activo' : 'Inactivo';
-        const newStatus = currentStatus === 'Activo' ? 'Inactivo' : 'Activo';
+    handleToggleAll(e) {
+        const button = $(e.target);
+        const allCheckboxes = $('.permiso-checkbox');
+        const checkedCount = allCheckboxes.filter(':checked').length;
+        const totalCount = allCheckboxes.length;
 
-        this.updatePermissionStatus(permisoId, newStatus, statusElement);
-    }
-
-    updatePermissionStatus(permisoId, newStatus, statusElement) {
-        $.ajax({
-            url: `/permiso-rol-menu/permisos/${permisoId}/status-update`,
-            method: 'POST',
-            data: {
-                _token: $('meta[name="csrf-token"]').attr('content')
-            },
-            success: (response) => this.handlePermissionStatusUpdateSuccess(response, statusElement),
-            error: (xhr) => {
-                console.error('Error:', xhr);
-                alert('Error al cambiar el estado del permiso.');
-            }
-        });
-    }
-
-    handlePermissionStatusUpdateSuccess(response, statusElement) {
-        if (response.success) {
-            // Actualizar el elemento visual
-            statusElement.classList.toggle('badge-success');
-            statusElement.classList.toggle('badge-danger');
-            statusElement.textContent = response.newStatus;
+        if (checkedCount === totalCount) {
+            // Deseleccionar todos
+            button.html('<i class="fas fa-square"></i> Seleccionar Todo');
+            allCheckboxes.filter(':checked').each((index, checkbox) => {
+                $(checkbox).prop('checked', false).trigger('change');
+            });
         } else {
-            alert('Error al cambiar el estado del permiso: ' + response.message);
+            // Seleccionar todos
+            button.html('<i class="fas fa-check-square"></i> Deseleccionar Todo');
+            allCheckboxes.filter(':not(:checked)').each((index, checkbox) => {
+                $(checkbox).prop('checked', true).trigger('change');
+            });
         }
     }
-}
 
-// Función global para eliminar permisos
-function deletePermission(permisoId, permisoName) {
-    if (confirm(`¿Estás seguro de que deseas eliminar el permiso "${permisoName}"?\n\nEsta acción no se puede deshacer.`)) {
-        // Crear un formulario temporal para enviar la petición DELETE
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `/permiso-rol-menu/permisos/${permisoId}`;
-        
-        // Agregar token CSRF
-        const csrfToken = document.createElement('input');
-        csrfToken.type = 'hidden';
-        csrfToken.name = '_token';
-        csrfToken.value = $('meta[name="csrf-token"]').attr('content');
-        form.appendChild(csrfToken);
-        
-        // Agregar método DELETE
-        const methodField = document.createElement('input');
-        methodField.type = 'hidden';
-        methodField.name = '_method';
-        methodField.value = 'DELETE';
-        form.appendChild(methodField);
-        
-        // Agregar al DOM y enviar
-        document.body.appendChild(form);
-        form.submit();
+    bindCollapseEvents() {
+        // Rotar iconos al colapsar/expandir
+        $(document).on('click', '[data-toggle="collapse"]', function () {
+            const target = $(this).find('i');
+            setTimeout(() => {
+                const isExpanded = $($(this).data('target')).hasClass('show');
+                if (isExpanded) {
+                    target.removeClass('fa-chevron-right').addClass('fa-chevron-down');
+                } else {
+                    target.removeClass('fa-chevron-down').addClass('fa-chevron-right');
+                }
+            }, 350);
+        });
+    }
+
+    handleCheckboxChange(e) {
+        const checkbox = e.target;
+        const permisoId = checkbox.value;
+        const rolId = this.getRolId();
+        const isChecked = checkbox.checked;
+
+        if (!permisoId || !rolId) {
+            console.error('No se pudo obtener el ID del permiso o rol');
+            return;
+        }
+
+        // Agregar clase de procesamiento
+        $(checkbox).closest('li').addClass('processing');
+
+        this.togglePermiso(rolId, permisoId, isChecked ? 'attach' : 'detach');
+    }
+
+    getRolId() {
+        // Obtener el ID del rol desde la URL o desde un elemento hidden
+        const url = window.location.pathname;
+        const matches = url.match(/\/rol\/menus\/(\d+)/);
+        return matches ? matches[1] : null;
+    }
+
+    togglePermiso(rolId, permisoId, action) {
+        $.ajax({
+            url: `/permiso-rol-menu/rol/${rolId}/permiso/${permisoId}/toggle`,
+            method: 'POST',
+            data: {
+                action: action,
+                _token: this.csrfToken
+            },
+            success: (response) => this.handleToggleSuccess(response, action, permisoId),
+            error: (xhr) => this.handleToggleError(xhr, action, permisoId)
+        });
+    }
+
+    handleToggleSuccess(response, action, permisoId) {
+        // Quitar clase de procesamiento
+        $(`.permiso-checkbox[value="${permisoId}"]`).closest('li').removeClass('processing');
+
+        if (response.success) {
+            if (action === 'attach') {
+                // Marcar como seleccionados los permisos padre
+                if (response.attached_ids) {
+                    response.attached_ids.forEach(id => {
+                        const checkbox = $(`.permiso-checkbox[value="${id}"]`);
+                        if (checkbox.length) {
+                            checkbox.prop('checked', true);
+                        }
+                    });
+                }
+            } else {
+                // Desmarcar los permisos hijo
+                if (response.detached_ids) {
+                    response.detached_ids.forEach(id => {
+                        const checkbox = $(`.permiso-checkbox[value="${id}"]`);
+                        if (checkbox.length) {
+                            checkbox.prop('checked', false);
+                        }
+                    });
+                }
+            }
+
+            // Mostrar mensaje de éxito
+            this.showMessage(response.message, 'success');
+        } else {
+            this.showMessage(response.message || 'Error al procesar la solicitud', 'error');
+        }
+    }
+
+    handleToggleError(xhr, action, permisoId) {
+        // Quitar clase de procesamiento
+        $(`.permiso-checkbox[value="${permisoId}"]`).closest('li').removeClass('processing');
+
+        let message = 'Error al procesar la solicitud';
+
+        if (xhr.responseJSON && xhr.responseJSON.message) {
+            message = xhr.responseJSON.message;
+        }
+
+        this.showMessage(message, 'error');
+
+        // Revertir el estado del checkbox
+        const checkbox = $(`.permiso-checkbox[value="${permisoId}"]`);
+        if (checkbox.length) {
+            checkbox.prop('checked', action === 'detach');
+        }
+    }
+
+    showMessage(message, type) {
+        // Remover mensajes anteriores
+        $('.alert-dynamic').remove();
+
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        const iconClass = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+        const alertHtml = `
+            <div class="alert ${alertClass} alert-dismissible fade show alert-dynamic" role="alert">
+                <i class="fas ${iconClass} mr-2"></i>
+                ${message}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        `;
+
+        // Insertar el mensaje en la parte superior del contenido
+        $('.alert-container').after(alertHtml);
+
+        // Auto-ocultar después de 5 segundos
+        setTimeout(() => {
+            $('.alert-dynamic').fadeOut();
+        }, 5000);
     }
 }
 
 // Inicializar cuando el DOM esté listo
-$(document).ready(() => new PermisosTree());
+$(document).ready(() => {
+    new PermisoRolManager();
+});
