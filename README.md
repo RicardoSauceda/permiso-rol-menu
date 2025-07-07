@@ -4,12 +4,13 @@ Este paquete proporciona funcionalidades para manejar permisos, roles y menús c
 
 ## Compatibilidad
 
-- ✅ **Laravel 7.x** - Compatible
-- ✅ **Laravel 8.x** - Compatible  
 - ✅ **Laravel 9.x** - Compatible
-- ✅ **Laravel 10.x** - Compatible
-- ✅ **PHP 7.3+** - Compatible
-- ✅ **PHP 8.x** - Compatible
+- ✅ **Laravel 10.x** - Compatible  
+- ✅ **Laravel 11.x** - Compatible
+- ✅ **Laravel 12.x** - Compatible ⭐ **NUEVO**
+- ✅ **PHP 8.1+** - Requerido para Laravel 12
+- ✅ **PHP 8.2** - Compatible
+- ✅ **PHP 8.3** - Compatible
 
 ## Características Principales
 
