@@ -11,6 +11,11 @@
                     <p>{{ $message }}</p>
                 </div>
                 @endif
+                @error('menu')
+                <div class="alert alert-error">
+                    <p>{{ $message }}</p>
+                </div>
+                @enderror
                 <div class="row align-items-center">
                     <div class="col-8">
                         <h3 class="mb-0">MENUS</h3>

@@ -50,19 +50,46 @@
                         <input type="hidden" name="menu" value="1">
                         <input type="hidden" name="activo" value="1">
                         <input type="hidden" name="clave_orden_padre" value="{{ $menu['clave_orden'] }}">
+                        
+                        @if ($errors->any())
+                            <div class="alert alert-danger alert-sm">
+                                <ul class="mb-0">
+                                    @foreach ($errors->all() as $error)
+                                        <li><small>{{ $error }}</small></li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+                        
                         <div class="form-group">
-                            <label>Nombre</label>
-                            <input type="text" name="permisoName" class="form-control form-control-sm" required>
+                            <label><small>Nombre *</small></label>
+                            <input type="text" name="permisoName" class="form-control form-control-sm @error('permisoName') is-invalid @enderror" value="{{ old('permisoName') }}" required>
+                            @error('permisoName')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="form-group">
-                            <label>Ruta Corta</label>
-                            <input type="text" name="rutaCorta" class="form-control form-control-sm" required>
+                            <label><small>Ruta Corta *</small></label>
+                            <input type="text" name="rutaCorta" class="form-control form-control-sm @error('rutaCorta') is-invalid @enderror" value="{{ old('rutaCorta') }}" required>
+                            @error('rutaCorta')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="form-group">
-                            <label>Descripción</label>
-                            <textarea name="permisoDescripcion" class="form-control form-control-sm" rows="2"></textarea>
+                            <label><small>Descripción</small></label>
+                            <textarea name="permisoDescripcion" class="form-control form-control-sm @error('permisoDescripcion') is-invalid @enderror" rows="2">{{ old('permisoDescripcion') }}</textarea>
+                            @error('permisoDescripcion')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
-                        <button type="submit" class="btn btn-sm btn-primary">Guardar</button>
+                        <div class="form-group mb-2">
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="fas fa-save"></i> Guardar
+                            </button>
+                            <button type="button" class="btn btn-sm btn-secondary ml-1" data-toggle="collapse" data-target="#add-form-{{ $menu['id'] }}">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                        </div>
                     </form>
                 </div>
             </li>

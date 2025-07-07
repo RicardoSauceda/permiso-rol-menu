@@ -65,67 +65,94 @@ class MenuController extends Controller
 
     public function treeStore(Request $request)
     {
-        $data = $request->validate([
-            'permisoName'        => 'required|string|max:255',
-            'rutaCorta'          => 'required|string|max:255',
-            'permisoDescripcion' => 'nullable|string',
-            'clave_orden_padre'  => 'nullable|string|max:6',
-        ]);
+        try {
+            $data = $request->validate([
+                'permisoName'        => 'required|string|max:255',
+                'rutaCorta'          => 'required|string|min:3|max:255',
+                'permisoDescripcion' => 'nullable|string',
+                'clave_orden_padre'  => 'nullable|string|max:8',
+            ]);
 
-        $menu = new Permiso;
-        $menu->nombre = trim($data['permisoName']);
-        $menu->ruta_corta = trim($data['rutaCorta']);
-        $menu->descripcion = trim($data['permisoDescripcion'] ?? '');
+            $menu = new Permiso;
+            $menu->nombre = trim($data['permisoName']);
+            $menu->ruta_corta = trim($data['rutaCorta']);
+            $menu->descripcion = trim($data['permisoDescripcion'] ?? '');
 
-        $clavePadre = $data['clave_orden_padre'] ?? null;
-        $parent = null;
-        if ($clavePadre) {
-            $parent = Permiso::where('clave_orden', $clavePadre)->first();
-        }
-        if ($parent && $parent->clave_orden) {
-            $clavePadre = $parent->clave_orden;
-
-            if (substr($clavePadre, 2, 6) === '000000') { // XX000000
-                $prefixLen = 2;
-                $maxItems = 99;
-            } elseif (substr($clavePadre, 4, 4) === '0000') { // XXXX0000  
-                $prefixLen = 4;
-                $maxItems = 99;
-            } elseif (substr($clavePadre, 6, 2) === '00') { // XXXXXX00
-                $prefixLen = 6;
-                $maxItems = 99;
-            } else { // XXXXXXXX - Los nuevos 2 dígitos
-                $prefixLen = 8;
-                $maxItems = 99;
-            }
-
-            $prefix = substr($clavePadre, 0, $prefixLen);
-
-            // Buscar el siguiente número disponible
-            $existingItems = Permiso::where('clave_orden', 'like', $prefix . '%')
-                ->where('clave_orden', '!=', $clavePadre)
-                ->pluck('clave_orden')
-                ->toArray();
-
-            $nextNumber = 1;
-            $paddingLen = ($prefixLen === 8) ? 0 : 8 - $prefixLen - 2; // Calcular padding restante
-
-            for ($i = 1; $i <= $maxItems; $i++) {
-                $testClave = $prefix . str_pad($i, 2, '0', STR_PAD_LEFT) . str_repeat('0', $paddingLen);
-                if (!in_array($testClave, $existingItems)) {
-                    $nextNumber = $i;
-                    break;
+            $clavePadre = $data['clave_orden_padre'] ?? null;
+            $parent = null;
+            
+            if ($clavePadre) {
+                $parent = Permiso::where('clave_orden', $clavePadre)->first();
+                if (!$parent) {
+                    return redirect()->back()->with('error', 'El menú padre no existe.')->withInput();
                 }
             }
+            
+            if ($parent && $parent->clave_orden) {
+                $clavePadre = $parent->clave_orden;
 
-            $menu->clave_orden = $prefix . str_pad($nextNumber, 2, '0', STR_PAD_LEFT) . str_repeat('0', $paddingLen);
-        } else {
-            $menu->clave_orden = '01000000'; // Primer menú principal
+                if (substr($clavePadre, 2, 6) === '000000') { // XX000000
+                    $prefixLen = 2;
+                    $maxItems = 99;
+                } elseif (substr($clavePadre, 4, 4) === '0000') { // XXXX0000  
+                    $prefixLen = 4;
+                    $maxItems = 99;
+                } elseif (substr($clavePadre, 6, 2) === '00') { // XXXXXX00
+                    $prefixLen = 6;
+                    $maxItems = 99;
+                } else { // XXXXXXXX - Los nuevos 2 dígitos
+                    $prefixLen = 8;
+                    $maxItems = 99;
+                }
+
+                $prefix = substr($clavePadre, 0, $prefixLen);
+
+                // Buscar el siguiente número disponible
+                $existingItems = Permiso::where('clave_orden', 'like', $prefix . '%')
+                    ->where('clave_orden', '!=', $clavePadre)
+                    ->pluck('clave_orden')
+                    ->toArray();
+
+                $nextNumber = 1;
+                $paddingLen = ($prefixLen === 8) ? 0 : 8 - $prefixLen - 2; // Calcular padding restante
+
+                for ($i = 1; $i <= $maxItems; $i++) {
+                    $testClave = $prefix . str_pad($i, 2, '0', STR_PAD_LEFT) . str_repeat('0', $paddingLen);
+                    if (!in_array($testClave, $existingItems)) {
+                        $nextNumber = $i;
+                        break;
+                    }
+                }
+
+                $menu->clave_orden = $prefix . str_pad($nextNumber, 2, '0', STR_PAD_LEFT) . str_repeat('0', $paddingLen);
+            } else {
+                // Si no hay padre, crear un menú de nivel 1
+                $existingMenus = Permiso::where('clave_orden', 'like', '%000000')
+                    ->where('clave_orden', 'not like', '00%')
+                    ->pluck('clave_orden')
+                    ->toArray();
+
+                $nextNumber = 1;
+                for ($i = 1; $i <= 99; $i++) {
+                    $testClave = str_pad($i, 2, '0', STR_PAD_LEFT) . '000000';
+                    if (!in_array($testClave, $existingMenus)) {
+                        $nextNumber = $i;
+                        break;
+                    }
+                }
+                
+                $menu->clave_orden = str_pad($nextNumber, 2, '0', STR_PAD_LEFT) . '000000';
+            }
+            
+            $menu->activo = true;
+            $menu->save();
+            
+            return redirect()->back()->with('success', 'Menú agregado correctamente.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->validator)->withInput();
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error al crear el menú: ' . $e->getMessage())->withInput();
         }
-        $menu->activo = true;
-        $menu->save();
-        return redirect()->route('menus.index')
-            ->with('success', 'Menú agregado correctamente.');
     }
 
 
