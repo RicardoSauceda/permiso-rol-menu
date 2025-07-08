@@ -2,11 +2,12 @@
     <div class="d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center">
             @if(isset($menu['submenu']) && count($menu['submenu']) > 0)
-                <button class="btn btn-sm btn-link p-0 mr-2" data-toggle="collapse" data-target="#submenu-{{ $menu['clave_orden'] }}">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+            <button class="btn btn-sm btn-link p-0 mr-2" data-toggle="collapse"
+                data-target="#submenu-{{ $menu['clave_orden'] }}">
+                <i class="fas fa-chevron-right"></i>
+            </button>
             @else
-                <span class="d-inline-block mr-3"></span>
+            <span class="d-inline-block mr-3"></span>
             @endif
             <div data-toggle="collapse" data-target="#submenu-{{ $menu['clave_orden'] }}" style="cursor: pointer;">
                 <strong class="menu-name">{{ $menu['nombre'] }}</strong>
@@ -17,82 +18,182 @@
         </div>
         <div class="d-flex align-items-center">
             @if(!isset($menu['submenu']) || count($menu['submenu']) == 0)
-                <a href="{{ route('permiso-rol-menu.permisos.arbol', $menu['clave_orden']) }}" 
-                   class="btn btn-sm btn-outline-primary mr-2" 
-                   title="Ver permisos específicos">
-                    <i class="fas fa-key"></i>
-                    <span class="d-none d-md-inline">Permisos</span>
-                </a>
+            <a href="{{ route('permiso-rol-menu.permisos.arbol', $menu['clave_orden']) }}"
+                class="btn btn-sm btn-outline-primary mr-2" title="Ver permisos específicos">
+                <i class="fas fa-key"></i>
+                <span class="d-none d-md-inline">Permisos</span>
+            </a>
             @endif
-            <span id="status-{{ $menu['id'] }}" style="cursor: pointer;" class="status badge badge-{{ $menu['activo'] ? 'success' : 'danger' }} mr-2" data-id-menu="{{ $menu['id'] }}">
+            <span id="status-{{ $menu['id'] }}" style="cursor: pointer;"
+                class="status badge badge-{{ $menu['activo'] ? 'success' : 'danger' }} mr-2"
+                data-id-menu="{{ $menu['id'] }}">
                 {{ $menu['activo'] ? 'Activo' : 'Inactivo' }}
             </span>
+            <button class="btn btn-sm btn-outline-warning mr-1" data-toggle="collapse"
+                data-target="#edit-form-{{ $menu['id'] }}" title="Editar menú">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger"
+                onclick="confirmDelete({{ $menu['id'] }}, '{{ $menu['nombre'] }}')" title="Eliminar menú">
+                <i class="fas fa-trash"></i>
+            </button>
         </div>
     </div>
     @if(isset($menu['submenu']) && count($menu['submenu']) > 0)
-        <ul id="submenu-{{ $menu['clave_orden'] }}" class="collapse">
-            @foreach($menu['submenu'] as $child)
-                @include('permiso-rol-menu::menu_items', ['menu' => $child, 'level' => $level + 1])
-            @endforeach
-        </ul>
+    <ul id="submenu-{{ $menu['clave_orden'] }}" class="collapse">
+        @foreach($menu['submenu'] as $child)
+        @include('permiso-rol-menu::menu_items', ['menu' => $child, 'level' => $level + 1])
+        @endforeach
+    </ul>
     @endif
-        @if ($level < 2) 
-        <ul>
-            <li class="tree-level-{{ $level + 1 }} mb-1">
-                <button class="btn btn-link p-0 text-muted small" data-toggle="collapse"
-                    data-target="#add-form-{{ $menu['id'] }}">
-                    <i class="fas fa-plus"></i>
-                    <span class="text-sm">Añadir</span>
+    @if ($level < 2) <ul>
+<li class="tree-level-{{ $level + 1 }} mb-1">
+    <button class="btn btn-link p-0 text-muted small" data-toggle="collapse" data-target="#add-form-{{ $menu['id'] }}">
+        <i class="fas fa-plus"></i>
+        <span class="text-sm">Añadir</span>
+    </button>
+    <div id="add-form-{{ $menu['id'] }}" class="collapse mt-2">
+        <form method="POST" action="{{ route('permiso-rol-menu.tree.menus.store') }}">
+            @csrf
+            <input type="hidden" name="menu" value="1">
+            <input type="hidden" name="activo" value="1">
+            <input type="hidden" name="clave_orden_padre" value="{{ $menu['clave_orden'] }}">
+
+            @if ($errors->any())
+            <div class="alert alert-danger alert-sm">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                    <li><small>{{ $error }}</small></li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
+            <div class="form-group">
+                <label><small>Nombre *</small></label>
+                <input type="text" name="permisoName"
+                    class="form-control form-control-sm @error('permisoName') is-invalid @enderror"
+                    value="{{ old('permisoName') }}" required>
+                @error('permisoName')
+                <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+            <div class="form-group">
+                <label><small>Ruta Corta *</small></label>
+                <input type="text" name="rutaCorta"
+                    class="form-control form-control-sm @error('rutaCorta') is-invalid @enderror"
+                    value="{{ old('rutaCorta') }}" required>
+                @error('rutaCorta')
+                <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+            <div class="form-group">
+                <label><small>Descripción</small></label>
+                <textarea name="permisoDescripcion"
+                    class="form-control form-control-sm @error('permisoDescripcion') is-invalid @enderror"
+                    rows="2">{{ old('permisoDescripcion') }}</textarea>
+                @error('permisoDescripcion')
+                <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+            <div class="form-group mb-2">
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="fas fa-save"></i> Guardar
                 </button>
-                <div id="add-form-{{ $menu['id'] }}" class="collapse mt-2">
-                    <form method="POST" action="{{ route('permiso-rol-menu.tree.menus.store') }}">
-                        @csrf
-                        <input type="hidden" name="menu" value="1">
-                        <input type="hidden" name="activo" value="1">
-                        <input type="hidden" name="clave_orden_padre" value="{{ $menu['clave_orden'] }}">
-                        
-                        @if ($errors->any())
-                            <div class="alert alert-danger alert-sm">
-                                <ul class="mb-0">
-                                    @foreach ($errors->all() as $error)
-                                        <li><small>{{ $error }}</small></li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-                        
-                        <div class="form-group">
-                            <label><small>Nombre *</small></label>
-                            <input type="text" name="permisoName" class="form-control form-control-sm @error('permisoName') is-invalid @enderror" value="{{ old('permisoName') }}" required>
-                            @error('permisoName')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="form-group">
-                            <label><small>Ruta Corta *</small></label>
-                            <input type="text" name="rutaCorta" class="form-control form-control-sm @error('rutaCorta') is-invalid @enderror" value="{{ old('rutaCorta') }}" required>
-                            @error('rutaCorta')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="form-group">
-                            <label><small>Descripción</small></label>
-                            <textarea name="permisoDescripcion" class="form-control form-control-sm @error('permisoDescripcion') is-invalid @enderror" rows="2">{{ old('permisoDescripcion') }}</textarea>
-                            @error('permisoDescripcion')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="form-group mb-2">
-                            <button type="submit" class="btn btn-sm btn-primary">
-                                <i class="fas fa-save"></i> Guardar
-                            </button>
-                            <button type="button" class="btn btn-sm btn-secondary ml-1" data-toggle="collapse" data-target="#add-form-{{ $menu['id'] }}">
-                                <i class="fas fa-times"></i> Cancelar
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </li>
-        </ul>
+                <button type="button" class="btn btn-sm btn-secondary ml-1" data-toggle="collapse"
+                    data-target="#add-form-{{ $menu['id'] }}">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+</li>
+</ul>
+@endif
+
+{{-- Formulario de edición --}}
+<div id="edit-form-{{ $menu['id'] }}" class="collapse mt-2">
+    <form method="POST" action="{{ route('permiso-rol-menu.menus.update', $menu['id']) }}">
+        @csrf
+        @method('PUT')
+
+        @if ($errors->any())
+        <div class="alert alert-danger alert-sm">
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                <li><small>{{ $error }}</small></li>
+                @endforeach
+            </ul>
+        </div>
         @endif
+
+        <div class="form-group">
+            <label><small>Nombre *</small></label>
+            <input type="text" name="nombre" class="form-control form-control-sm @error('nombre') is-invalid @enderror"
+                value="{{ old('nombre', $menu['nombre']) }}" required>
+            @error('nombre')
+            <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+        <div class="form-group">
+            <label><small>Ruta Corta *</small></label>
+            <input type="text" name="ruta_corta"
+                class="form-control form-control-sm @error('ruta_corta') is-invalid @enderror"
+                value="{{ old('ruta_corta', $menu['ruta_corta']) }}" required>
+            @error('ruta_corta')
+            <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+        <div class="form-group">
+            <label><small>Descripción</small></label>
+            <textarea name="descripcion" class="form-control form-control-sm @error('descripcion') is-invalid @enderror"
+                rows="2">{{ old('descripcion', $menu['descripcion']) }}</textarea>
+            @error('descripcion')
+            <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+        <div class="form-group">
+            <label><small>Ícono</small></label>
+            <input type="text" name="icono" class="form-control form-control-sm @error('icono') is-invalid @enderror"
+                value="{{ old('icono', $menu['icono'] ?? '') }}" placeholder="ej: fas fa-home">
+            @error('icono')
+            <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+        <div class="form-group">
+            <label><small>Clave Orden</small></label>
+            <input type="text" name="clave_orden"
+                class="form-control form-control-sm @error('clave_orden') is-invalid @enderror"
+                value="{{ old('clave_orden', $menu['clave_orden']) }}">
+            @error('clave_orden')
+            <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+        <div class="form-group">
+            <div class="form-check">
+                <input type="checkbox" name="activo" value="1" class="form-check-input" id="activo-{{ $menu['id'] }}" {{
+                    old('activo', $menu['activo']) ? 'checked' : '' }}>
+                <label class="form-check-label" for="activo-{{ $menu['id'] }}">
+                    <small>Activo</small>
+                </label>
+            </div>
+        </div>
+        <div class="form-group mb-2">
+            <button type="submit" class="btn btn-sm btn-success">
+                <i class="fas fa-save"></i> Actualizar
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary ml-1" data-toggle="collapse"
+                data-target="#edit-form-{{ $menu['id'] }}">
+                <i class="fas fa-times"></i> Cancelar
+            </button>
+        </div>
+    </form>
+</div>
+
+{{-- Formulario oculto para eliminación --}}
+<form id="delete-form-{{ $menu['id'] }}" method="POST"
+    action="{{ route('permiso-rol-menu.menus.destroy', $menu['id']) }}" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
 </li>
