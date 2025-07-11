@@ -1,8 +1,6 @@
 @extends(config('permiso-rol-menu.layout', 'layouts.app'))
-@section('title', 'ASIGNAR PERMISO ROL | Sivyc Icatech')
-@push('css')
-<link rel="stylesheet" href="{{ asset('vendor/permiso-rol-menu/css/permiso-user.css') }}?v={{ time() }}">
-@endpush
+
+@section('title', 'ASIGNAR PERMISO USUARIO | Sivyc Icatech')
 
 @section('content')
 <div class="container-fluid mt--6">
@@ -12,27 +10,27 @@
                 <div class="card-header">
                     <div class="alert-container p-2">
                         @if(session('success'))
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="fas fa-check-circle mr-2"></i>
-                            {{ session('success') }}
-                            <button type="button" class="close" data-dismiss="alert">
-                                <span>&times;</span>
-                            </button>
-                        </div>
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                {{ session('success') }}
+                                <button type="button" class="close" data-dismiss="alert">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
                         @endif
                         @if(session('error'))
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-circle mr-2"></i>
-                            {{ session('error') }}
-                            <button type="button" class="close" data-dismiss="alert">
-                                <span>&times;</span>
-                            </button>
-                        </div>
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="fas fa-exclamation-circle mr-2"></i>
+                                {{ session('error') }}
+                                <button type="button" class="close" data-dismiss="alert">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
                         @endif
                     </div>
                     <div class="row align-items-center">
                         <div class="col-8">
-                            <h3 class="mb-0">Menu para rol: {{ $rol->nombre }}</h3>
+                            <h3 class="mb-0">Menu para: {{ $usuario->nombre }}</h3>
                         </div>
                         <div class="col-4 text-right">
                             <button type="submit" form="permisos-form" class="btn btn-sm btn-primary">
@@ -46,21 +44,18 @@
                         <h4>Árbol de Menús</h4>
                         <div class="mb-3">
                             <small class="text-muted">
-                                <i class="fas fa-info-circle"></i>
-                                Selecciona los permisos que tendrá este rol. Los usuarios con este rol heredarán
-                                automáticamente estos permisos.
+                                <i class="fas fa-info-circle"></i> 
+                                Los permisos marcados con <span class="text-info"> <i class="fas fa-users"></i> </span> están asignados a través de roles y no pueden ser modificados directamente.
                             </small>
                         </div>
-                        <form id="permisos-form" method="POST"
-                            action="{{ route('permiso-rol-menu.roles.permisos.guardar', $rol->id) }}">
+                        <form id="permisos-form" method="POST" action="{{ route('permiso-rol-menu.usuarios.permisos.guardar', $usuario->id) }}">
                             @csrf
                             <div class="tree-container">
                                 <ul class="menu-tree">
                                     @if(isset($menuTree) && count($menuTree) > 0)
-                                    @foreach($menuTree as $menuItems)
-                                    @include('permiso-rol-menu::rol.permiso_items', ['menu' => $menuItems, 'level' =>
-                                    0])
-                                    @endforeach
+                                        @foreach($menuTree as $menuItems)
+                                            @include('permiso-rol-menu::usuario.permiso_items', ['menu' => $menuItems, 'level' => 0])
+                                        @endforeach
                                     @else
                                     <li>No hay menús disponibles</li>
                                     @endif
@@ -73,11 +68,9 @@
         </div>
     </div>
 </div>
-@endsection
 
-@push('scripts')
 <script>
-    $(document).ready(function() {
+$(document).ready(function() {
     // Manejo de expansión/colapso de submenús
     $('[data-toggle="collapse"]').on('click', function() {
         const target = $(this).find('i.fas');
@@ -93,24 +86,30 @@
         }, 350);
     });
 
+    // Prevenir clicks en checkboxes deshabilitados
+    $('.permiso-checkbox:disabled').on('click', function(e) {
+        e.preventDefault();
+        return false;
+    });
+
     // Manejo del envío del formulario
     $('#permisos-form').on('submit', function(e) {
         e.preventDefault();
         
-        const checkedCheckboxes = $('.permiso-checkbox:checked');
-        const checkedCount = checkedCheckboxes.length;
+        const enabledCheckboxes = $('.permiso-checkbox:not(:disabled)');
+        const checkedCount = enabledCheckboxes.filter(':checked').length;
         
-        // Mostrar confirmación específica para roles
-        if (confirm(`¿Confirmar cambios en permisos del rol? Esto afectará a todos los usuarios con este rol. Se asignarán ${checkedCount} permisos al rol.`)) {
-            // Crear un formulario temporal para enviar solo los checkboxes marcados
+        // Mostrar confirmación
+        if (confirm(`¿Confirmar asignación de permisos directos al usuario? Se asignarán ${checkedCount} permisos directos.`)) {
+            // Crear un formulario temporal para enviar solo los checkboxes habilitados y marcados
             const form = $(this);
             const formData = new FormData();
             
             // Agregar CSRF token
             formData.append('_token', $('input[name="_token"]').val());
             
-            // Agregar solo los permisos marcados
-            checkedCheckboxes.each(function() {
+            // Agregar solo los permisos habilitados y marcados
+            enabledCheckboxes.filter(':checked').each(function() {
                 formData.append('menu[' + $(this).val() + ']', $(this).val());
             });
             
@@ -125,7 +124,7 @@
                     location.reload();
                 },
                 error: function(xhr) {
-                    let message = 'Error al guardar los permisos del rol';
+                    let message = 'Error al guardar los permisos';
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         message = xhr.responseJSON.message;
                     }
@@ -136,4 +135,8 @@
     });
 });
 </script>
+@endsection
+
+@push('css')
+    <link rel="stylesheet" href="{{ asset('vendor/permiso-rol-menu/css/permiso-user.css') }}?v={{ time() }}">
 @endpush

@@ -23,6 +23,7 @@ Route::prefix('permiso-rol-menu')->name('permiso-rol-menu.')->middleware(['web',
     Route::delete('roles/{id}', [RolController::class, 'destroy'])->name('roles.destroy');
     Route::get('/rol/menus/{id}', [RolController::class, 'showMenus'])->name('rol.menus.show');
     Route::post('/rol/{rolId}/permiso/{permisoId}/toggle', [RolController::class, 'togglePermiso'])->name('rol.permiso.toggle');
+    Route::post('roles/{id}/permisos', [RolController::class, 'guardarPermisosRoles'])->name('roles.permisos.guardar');
 
     // Rutas para Menús (tipo de permiso)
     Route::post('/menus/{id}/status-update', [MenuController::class, 'statusUpdate'])->name('tree.menus.status.update');
@@ -31,4 +32,8 @@ Route::prefix('permiso-rol-menu')->name('permiso-rol-menu.')->middleware(['web',
     Route::post('menus', [MenuController::class, 'store'])->name('menus.store');
     Route::put('menus/{id}', [MenuController::class, 'update'])->name('menus.update');
     Route::delete('menus/{id}', [MenuController::class, 'destroy'])->name('menus.destroy');
+
+    // Permisos de usuario
+    Route::get('usuarios/{id}/permisos', [PermisoController::class, 'gestorPermisosUsuarios'])->name('usuarios.permisos');
+    Route::post('usuarios/{id}/permisos', [PermisoController::class, 'guardarPermisosUsuarios'])->name('usuarios.permisos.guardar');
 });

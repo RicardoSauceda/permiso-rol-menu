@@ -114,4 +114,12 @@ trait ConfiguresSpanishUserModel
     {
         return $this->nombre;
     }
+
+    /**
+     * Obtener los menús/permisos del usuario que tienen orden definido
+     */
+    public function menus()
+    {
+        return $this->permissions()->whereNotNull('clave_orden');
+    }
 }

@@ -17,6 +17,11 @@ class RenameNameColumnToUsersTable extends Migration
             if (Schema::hasColumn('users', 'name')) {
                 $table->renameColumn('name', 'nombre');
             }
+            // * registro_id es para relacionar con la funcionarios
+            $table->foreignId('registro_id')->after('id');
+            $table->string('registro_type')->nullable()->after('registro_id');
+            $table->boolean('activo')->default(true);
+            $table->date('fecha_caducidad')->nullable();
         });
     }
 

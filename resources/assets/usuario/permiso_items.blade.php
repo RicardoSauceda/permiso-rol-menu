@@ -18,20 +18,41 @@
 
         </div>
         <div class="d-flex align-items-center">
+            @php
+                $tienePermisoDirecto = $usuario->menus->contains($menu['id']);
+                $tienePermisoViaRol = isset($permisosViaRoles) && $permisosViaRoles->contains($menu['id']);
+                $esRolEspecial = isset($tieneRolAllAccess) && $tieneRolAllAccess;
+            @endphp
+            
             <div class="custom-control custom-checkbox">
-                <input type="checkbox" class="custom-control-input permiso-checkbox" id="permiso-{{ $menu['id'] }}"
-                    name="menu[{{ $menu['id'] }}]" value="{{ $menu['id'] }}" {{ $rol->menus->contains($menu['id']) ?
-                'checked' : '' }}
-                data-permiso-id="{{ $menu['id'] }}"
-                data-clave-orden="{{ $menu['clave_orden'] }}">
+                <input type="checkbox" 
+                       class="custom-control-input permiso-checkbox" 
+                       id="permiso-{{ $menu['id'] }}" 
+                       name="menu[{{ $menu['id'] }}]" 
+                       value="{{ $menu['id'] }}" 
+                       {{ $tienePermisoDirecto || $tienePermisoViaRol ? 'checked' : '' }}
+                       {{ $tienePermisoViaRol && !$tienePermisoDirecto ? 'disabled' : '' }}
+                       data-permiso-id="{{ $menu['id'] }}"
+                       data-clave-orden="{{ $menu['clave_orden'] }}">
                 <label class="custom-control-label" for="permiso-{{ $menu['id'] }}"></label>
             </div>
+            
+            @if($tienePermisoViaRol && !$tienePermisoDirecto)
+                <small class="text-info ml-2">
+                    <i class="fas fa-users"></i>
+                    @if($esRolEspecial)
+                        Acceso total por rol
+                    @else
+                        Asignado por rol 
+                    @endif
+                </small>
+            @endif
         </div>
     </div>
     @if(isset($menu['submenu']) && count($menu['submenu']) > 0)
     <ul id="submenu-{{ $menu['clave_orden'] }}" class="collapse">
         @foreach($menu['submenu'] as $child)
-        @include('permiso-rol-menu::rol.permiso_items', ['menu' => $child, 'level' => $level + 1])
+            @include('permiso-rol-menu::usuario.permiso_items', ['menu' => $child, 'level' => $level + 1])
         @endforeach
     </ul>
     @endif

@@ -75,15 +75,15 @@ class RolController extends Controller
             return redirect()->back()->with('error', 'Error al eliminar el rol: ' . $e->getMessage());
         }
     }
-    
+
     public function togglePermiso(Request $request, $rolId, $permisoId)
     {
         try {
             $rol = Rol::findOrFail($rolId);
             $permiso = Permiso::findOrFail($permisoId);
-            
+
             $action = $request->input('action'); // 'attach' o 'detach'
-            
+
             if ($action === 'attach') {
                 // Verificar si el permiso ya está asignado
                 if ($rol->permisos->contains($permisoId)) {
@@ -93,13 +93,13 @@ class RolController extends Controller
                         'attached_ids' => []
                     ]);
                 }
-                
+
                 // Agregar el permiso al rol
                 $rol->permisos()->syncWithoutDetaching([$permisoId]);
-                
+
                 // Agregar todos los permisos padre (hacia arriba)
                 $attachedParents = $this->attachParentPermisos($rol, $permiso);
-                
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Permiso asignado correctamente',
@@ -114,13 +114,13 @@ class RolController extends Controller
                         'detached_ids' => []
                     ]);
                 }
-                
+
                 // Quitar el permiso del rol
                 $rol->permisos()->detach($permisoId);
-                
+
                 // Quitar todos los permisos hijo (hacia abajo)
                 $detachedChildren = $this->detachChildPermisos($rol, $permiso);
-                
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Permiso desasignado correctamente',
@@ -134,12 +134,12 @@ class RolController extends Controller
             ], 500);
         }
     }
-    
+
     private function attachParentPermisos($rol, $permiso)
     {
         $attachedIds = [];
         $clavePadre = $permiso->clave_padre;
-        
+
         while ($clavePadre) {
             $padre = Permiso::where('clave_orden', $clavePadre)->first();
             if ($padre && !$rol->permisos->contains($padre->id)) {
@@ -152,35 +152,35 @@ class RolController extends Controller
                 break;
             }
         }
-        
+
         return $attachedIds;
     }
-    
+
     private function detachChildPermisos($rol, $permiso)
     {
         $detachedIds = [];
         $this->detachChildPermisosRecursive($rol, $permiso, $detachedIds);
         return $detachedIds;
     }
-    
+
     private function detachChildPermisosRecursive($rol, $permiso, &$detachedIds)
     {
         $claveOrden = $permiso->clave_orden;
-        
+
         // Buscar todos los hijos basándose en la clave_orden
         $hijos = $this->getChildPermisos($claveOrden);
-        
+
         foreach ($hijos as $hijo) {
             if ($rol->permisos->contains($hijo->id)) {
                 $rol->permisos()->detach($hijo->id);
                 $detachedIds[] = $hijo->id;
-                
+
                 // Recursivamente quitar los hijos de este hijo
                 $this->detachChildPermisosRecursive($rol, $hijo, $detachedIds);
             }
         }
     }
-    
+
     private function getChildPermisos($claveOrden)
     {
         // Dependiendo del nivel, buscar hijos con el patrón correcto
@@ -208,11 +208,11 @@ class RolController extends Controller
             return collect();
         }
     }
-    
+
     private function getAttachedIds($rol, $permiso)
     {
         $attachedIds = [];
-        
+
         // Obtener IDs de permisos padre que fueron adjuntados
         $clavePadre = $permiso->clave_padre;
         while ($clavePadre) {
@@ -224,7 +224,75 @@ class RolController extends Controller
                 break;
             }
         }
-        
+
         return $attachedIds;
+    }
+
+    public function guardarPermisosRoles(Request $request, $id)
+    {
+        try {
+            $rol = Rol::findOrFail($id);
+
+            // Validar datos
+            $data = $request->validate([
+                'menu' => 'sometimes|array',
+                'menu.*' => 'exists:tblz_permisos,id'
+            ]);
+
+            $permisosSeleccionados = collect($data['menu'] ?? []);
+            $permisosActuales = $rol->permisos->pluck('id');
+
+            // Calcular permisos a agregar y quitar
+            $permisosAgregar = $permisosSeleccionados->diff($permisosActuales);
+            $permisosQuitar = $permisosActuales->diff($permisosSeleccionados);
+
+            $attachedIds = [];
+            $detachedIds = [];
+
+            // Agregar permisos nuevos (usando la lógica existente de padres)
+            foreach ($permisosAgregar as $permisoId) {
+                $permiso = Permiso::find($permisoId);
+                if ($permiso && !$rol->permisos->contains($permisoId)) {
+                    // Agregar el permiso
+                    $rol->permisos()->syncWithoutDetaching([$permisoId]);
+                    $attachedIds[] = $permisoId;
+
+                    // Agregar todos los permisos padre
+                    $attachedParents = $this->attachParentPermisos($rol, $permiso);
+                    $attachedIds = array_merge($attachedIds, $attachedParents);
+
+                    // Recargar la relación para los siguientes permisos
+                    $rol->load('permisos');
+                }
+            }
+
+            // Quitar permisos no seleccionados (usando la lógica existente de hijos)
+            foreach ($permisosQuitar as $permisoId) {
+                $permiso = Permiso::find($permisoId);
+                if ($permiso && $rol->permisos->contains($permisoId)) {
+                    // Quitar el permiso
+                    $rol->permisos()->detach($permisoId);
+                    $detachedIds[] = $permisoId;
+
+                    // Quitar todos los permisos hijo
+                    $detachedChildren = $this->detachChildPermisos($rol, $permiso);
+                    $detachedIds = array_merge($detachedIds, $detachedChildren);
+
+                    // Recargar la relación para los siguientes permisos
+                    $rol->load('permisos');
+                }
+            }
+
+            $totalChanges = count($attachedIds) + count($detachedIds);
+            $message = "Permisos del rol actualizados correctamente.";
+
+            if ($totalChanges > count($permisosSeleccionados)) {
+                $message .= " Se aplicaron automáticamente las reglas de jerarquía (padres/hijos).";
+            }
+
+            return redirect()->back()->with('success', $message);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error al actualizar los permisos del rol: ' . $e->getMessage());
+        }
     }
 }

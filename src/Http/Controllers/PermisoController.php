@@ -2,6 +2,7 @@
 
 namespace Icatech\PermisoRolMenu\Http\Controllers;
 
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Icatech\PermisoRolMenu\Models\Permiso;
@@ -222,5 +223,86 @@ class PermisoController extends Controller
             ]);
         }
         return response()->json(['success' => false, 'message' => 'Permiso no encontrado'], 404);
+    }
+
+    public function gestorPermisosUsuarios($id)
+    {
+        $usuario = User::findOrFail($id);
+        $menus = Permiso::whereNotNull('clave_orden')
+            ->select('id', 'nombre', 'ruta_corta', 'descripcion', 'activo', 'clave_orden')
+            ->orderBy('clave_orden')
+            ->get();
+
+        // Obtener permisos que el usuario tiene a través de roles
+        $permisosViaRoles = collect();
+        $tieneRolNoAccess = false;
+        $tieneRolAllAccess = false;
+
+        foreach ($usuario->roles as $rol) {
+            if ($rol->especial === 'all-access') {
+                // Si tiene all-access, todos los permisos están disponibles vía rol
+                $permisosViaRoles = $menus->pluck('id');
+                $tieneRolAllAccess = true;
+                break;
+            } elseif ($rol->especial === 'no-access') {
+                $tieneRolNoAccess = true;
+                // No agregar permisos si tiene no-access
+                continue;
+            }
+            $permisosViaRoles = $permisosViaRoles->merge($rol->permisos->pluck('id'));
+        }
+
+        // Si tiene rol no-access, no mostrar permisos vía roles
+        if ($tieneRolNoAccess && !$tieneRolAllAccess) {
+            $permisosViaRoles = collect();
+        }
+
+        $permisosViaRoles = $permisosViaRoles->unique();
+
+        // Utilizar directamente la lógica de buildMenuTree
+        $menuController = new MenuController();
+        $menuTree = $menuController->buildMenuTree($menus, 1, null, true);
+
+        return view('permiso-rol-menu::usuario.permisos', compact('menuTree', 'usuario', 'permisosViaRoles', 'tieneRolAllAccess'));
+    }
+
+    public function guardarPermisosUsuarios(Request $request, $id)
+    {
+        try {
+            $usuario = User::findOrFail($id);
+
+            // Validar datos
+            $data = $request->validate([
+                'menu' => 'sometimes|array',
+                'menu.*' => 'exists:tblz_permisos,id'
+            ]);
+
+            $permisosSeleccionados = collect($data['menu'] ?? []);
+
+            // Obtener permisos que el usuario tiene vía roles para no tocarlos
+            $permisosViaRoles = collect();
+            foreach ($usuario->roles as $rol) {
+                if ($rol->especial === 'all-access') {
+                    // Si tiene all-access, considerar todos los permisos como vía rol
+                    $permisosViaRoles = Permiso::whereNotNull('clave_orden')->pluck('id');
+                    break;
+                } elseif ($rol->especial !== 'no-access') {
+                    $permisosViaRoles = $permisosViaRoles->merge($rol->permisos->pluck('id'));
+                }
+            }
+            $permisosViaRoles = $permisosViaRoles->unique();
+
+            // Solo sincronizar permisos que NO vienen de roles
+            $permisosDirectos = $permisosSeleccionados->reject(function ($permisoId) use ($permisosViaRoles) {
+                return $permisosViaRoles->contains($permisoId);
+            });
+
+            // Sincronizar solo los permisos directos
+            $usuario->permissions()->sync($permisosDirectos->toArray());
+
+            return redirect()->back()->with('success', 'Permisos actualizados correctamente.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error al actualizar los permisos: ' . $e->getMessage());
+        }
     }
 }
